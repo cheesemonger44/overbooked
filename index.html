@@ -539,7 +539,7 @@ const LEVELS = [
     blurb: 'A sealed wall splits the ward in two. Hit a red button to open the airlocks, cross while you can, and mind the doors on the way back.',
     map: ['###############',
           '#|B|B|WRC|B|B|#',
-          '#......#......#',
+          'D......#......D',
           '#.CPCK.S.CFFC.#',
           '#......#......#',
           '#.CMCC.S.KAAC.#',
@@ -554,7 +554,7 @@ const LEVELS = [
     blurb: 'The lights are down low, and every so often the power cuts out completely. Then your head torch is all you have.',
     map: ['###############',
           '#|B|B|CWR|B|B|#',
-          '#.............#',
+          'D.............D',
           '#.CPC.#.#.CFC.#',
           '#.CMC.#.#.CAC.#',
           '#.............#',
@@ -2134,7 +2134,7 @@ function sliderHazard() {
   const doors = tiles.flat().filter(t => t.ch === 'S' || t.ch === 'T');
   const buttons = tiles.flat().filter(t => t.kind === 'switch');
   let open = 0, closing = 0, beepT = 0;      // open: seconds left standing open; closing: warning countdown
-  const OPEN_TIME = 6.5, WARN = 1.2;
+  const OPEN_TIME = 3, WARN = 1;
   const setDoors = (blocked, ko) => doors.forEach(t => { t.blocked = blocked; t.slider.target = blocked ? 1 : 0; if (blocked && ko) evict(t, true); });
   airlockPress = (btn) => {
     if (G.state !== 'play') return;
@@ -2183,7 +2183,7 @@ function collapseHazard() {
     m.g.position.copy(b.pos); builders.push(b); return b;
   }
   return {
-    builders,
+    builders, events,
     reset() {
       events.forEach(e => { if (e.g) levelRoot.remove(e.g); levelRoot.remove(e.shadow); e.t.blocked = false; });
       events.length = 0; builders.forEach(b => levelRoot.remove(b.m.g)); builders.length = 0;
@@ -3418,12 +3418,23 @@ function itemApply(cur, d, owner) {
   it.progress = d[2]; it.burn = d[3];
   return it;
 }
+function collapseShadows() { // ceiling about to give way: the guest draws the same growing shadow
+  const h = hazards.find(x => x.events);
+  return h ? h.events.filter(e => e.phase === 'warn').map(e => [e.t.y * 15 + e.t.x, r2(e.shadow.scale.x), r2(e.shadow.material.opacity)]) : [];
+}
+function crowdSnap() { // everyone the guest needs to draw: visitors, the cleaner, builders
+  const out = [];
+  hazards.forEach(h => {
+    (h.npcs || []).forEach(n => out.push([n.uid, n.kind, r2(n.pos.x), r2(n.pos.z), r2(n.angle), (n.chair ? 1 : 0) | (n.fallT > 0 ? 2 : 0) | (n.leaving ? 4 : 0), n.look, r2(n.m.g.position.y)]));
+    (h.builders || []).forEach(b => out.push([b.uid, 'builder', r2(b.pos.x), r2(b.pos.z), r2(b.angle), b.work > 0 ? 16 : 0, b.look, 0]));
+  });
+  return out;
+}
 function buildSnap() {
-  const vis = hazards.find(h => h.npcs);
   const s = {
     t: 's', n: ++NET.seq, st: G.state, cd: r2(G.cd || 0), lf: r1(G.left), sc: G.score, tr: G.treated, ls: G.lost, el: r1(G.elapsed),
     pl: players.map(p => [r2(p.pos.x), r2(p.pos.z), r2(p.angle), r1(p.ko), p.working ? 1 : 0, itemSnap(p.held), r2(p.slipT)]),
-    it: [], bd: [], vs: [], lv: [], ca: [], bl: [], wt: [],
+    it: [], bd: [], vs: [], lv: [], ca: [], bl: [], wt: [], sh: [],
     rd: returnTile.dirty, sk: world.sinks.map(t => t.clean),
     lg: [r2(LIGHT), EV.blackout > 0 ? 1 : 0, EV.sprinkle > 0 ? 1 : 0],
     ev: NET.evq.splice(0, 24),
@@ -3435,16 +3446,35 @@ function buildSnap() {
     if (t.wet > 0) s.wt.push(i);
   }
   beds.forEach((b, i) => { const p = b.patient; if (p) s.bd.push([i, p.uid, RECIPES.indexOf(p.recipe), r1(p.pat), r1(p.max), p.state, r2(p.t), p.look]); });
-  if (vis) vis.npcs.forEach(n => s.vs.push([n.uid, n.kind, r2(n.pos.x), r2(n.pos.z), r2(n.angle), (n.chair ? 1 : 0) | (n.fallT > 0 ? 2 : 0) | (n.leaving ? 4 : 0), n.look, r2(n.m.g.position.y)]));
+  s.vs = crowdSnap();
+  s.sh = collapseShadows();
   leavers.forEach(n => s.lv.push([n.uid, r2(n.pos.x), r2(n.pos.z), r2(n.angle), n.look, r2(n.m.g.position.y)]));
   CARTS.forEach((c, i) => { if (c.busy) s.ca.push([i, r2(c.x), r1(c.g.position.z), c.g.rotation.y > 1 ? 1 : 0]); });
   return s;
 }
-const GUEST = { pats: new Map(), vis: new Map(), lvs: new Map(), rubble: new Map() };
+const GUEST = { pats: new Map(), vis: new Map(), lvs: new Map(), rubble: new Map(), shadows: new Map() };
+// the dark patch that grows under a bit of ceiling just before it lands
+function applyShadows(list) {
+  const live = new Set();
+  list.forEach(([i, sc, op]) => {
+    live.add(i);
+    let m = GUEST.shadows.get(i);
+    if (!m) {
+      const t = tiles[(i / 15) | 0][i % 15];
+      m = new THREE.Mesh(cg('shadowDisc', () => new THREE.CircleGeometry(0.5, 24)), new THREE.MeshBasicMaterial({ color: '#1b1510', transparent: true, opacity: 0, depthWrite: false }));
+      m.rotation.x = -PI / 2; m.position.set(t.x, 0.012, t.y); levelRoot.add(m); GUEST.shadows.set(i, m);
+      if (Math.random() < 0.5) sfxRaw.creak();
+    }
+    m.scale.setScalar(sc); m.material.opacity = op;
+    if (Math.random() < 0.2) emit(m.position.x + rand(-0.35, 0.35), 3.4, m.position.z + rand(-0.35, 0.35), { color: '#bdb5a6', up: -1.2, g: 5, life: 0.9, size: 0.03, sp: 0.05, spread: 0.02 });
+  });
+  [...GUEST.shadows.keys()].forEach(i => { if (!live.has(i)) { levelRoot.remove(GUEST.shadows.get(i)); GUEST.shadows.delete(i); } });
+}
 function guestClear() {
   GUEST.vis.forEach(v => levelRoot.remove(v.m.g)); GUEST.vis.clear();
   GUEST.lvs.forEach(v => levelRoot.remove(v.m.g)); GUEST.lvs.clear();
   GUEST.rubble.forEach(g => levelRoot.remove(g)); GUEST.rubble.clear();
+  GUEST.shadows.forEach(m => levelRoot.remove(m)); GUEST.shadows.clear();
   GUEST.pats.clear();
 }
 function applySnap(s) {
@@ -3500,7 +3530,7 @@ function applySnap(s) {
     const i = t.y * 15 + t.x, isBlocked = blocked.has(i);
     t.blocked = isBlocked;
     if (t.slider) t.slider.target = isBlocked ? 1 : 0;
-    if (t.ch === ',') {
+    if (t.kind === 'floor' && !t.slider) {
       if (isBlocked && !GUEST.rubble.has(i)) { const g = makeRubbleMesh(t); g.position.y = 0; GUEST.rubble.set(i, g); }
       else if (!isBlocked && GUEST.rubble.has(i)) { levelRoot.remove(GUEST.rubble.get(i)); GUEST.rubble.delete(i); }
     }
@@ -3510,6 +3540,7 @@ function applySnap(s) {
   world.sinks.forEach((t, i) => { if (t.clean !== s.sk[i]) { t.clean = s.sk[i]; updateSinkRack(t); } });
   LIGHT = s.lg[0]; EV.blackout = s.lg[1] ? 1 : 0; EV.sprinkle = s.lg[2] ? 1 : 0;
   if (EV.sprinkle) for (let i = 0; i < 4; i++) emit(rand(0.7, 13.3), 2.9, rand(1.6, 6.8), { color: '#9fdcff', up: -2.5, g: 9, life: 0.45, size: 0.022, sp: 0.05, spread: 0.02, op: 0.8 });
+  applyShadows(s.sh || []);
   (s.ev || []).forEach(playNetEvent);
 }
 function syncCrowd(map, list, make, extra) {
@@ -3525,7 +3556,8 @@ function syncCrowd(map, list, make, extra) {
     v.m.g.position.set(d[2], v.y || 0, d[3]); v.m.g.rotation.y = d[4];
     v.m.body.rotation.x = fallen ? -1.3 : 0;
     v.m.body.position.y = moved ? Math.abs(Math.sin(v.walkT)) * 0.05 : 0;
-    v.m.arms.forEach((a, k) => a.rotation.x = v.wave && k === 1 ? -2.6 + Math.sin(G.t * 10) * 0.35 : sitting ? -1.1 : moved ? Math.sin(v.walkT + k * PI) * 0.5 : 0);
+    const working = !!(v.flags & 16);
+    v.m.arms.forEach((a, k) => a.rotation.x = working ? -1.5 + Math.sin(G.t * 14 + k) * 0.6 : v.wave && k === 1 ? -2.6 + Math.sin(G.t * 10) * 0.35 : sitting ? -1.1 : moved ? Math.sin(v.walkT + k * PI) * 0.5 : 0);
     swingLegs(v.m, v.walkT, moved, 1 / 60, sitting);
     blinkEyes(v.m, 1 / 60);
   });
