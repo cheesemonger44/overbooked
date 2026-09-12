@@ -478,12 +478,12 @@ const STATIONS = {
   sink:       { name: 'Sink',         manual: true,  time: 2.0, map: { dirty: 'tray' } },
 };
 const RECIPES = [
-  { id: 'knee',      name: 'Scraped Knee', items: ['bandage'],                  pat: 52, unlock: 0 },
-  { id: 'fever',     name: 'Fever',        items: ['pills', 'ice'],             pat: 64, unlock: 0 },
-  { id: 'flu',       name: 'Flu',          items: ['dose', 'sterile'],          pat: 80, unlock: 20 },
-  { id: 'burn',      name: 'Burn',         items: ['ice', 'bandage'],           pat: 64, unlock: 45 },
-  { id: 'fracture',  name: 'Broken Arm',   items: ['sling', 'pills'],           pat: 74, unlock: 70 },
-  { id: 'infection', name: 'Infection',    items: ['sterile', 'dose', 'bandage'], pat: 96, unlock: 100 },
+  { id: 'knee',      name: 'Scraped Knee', items: ['bandage'],                  pat: 38, unlock: 0 },
+  { id: 'fever',     name: 'Fever',        items: ['pills', 'ice'],             pat: 46, unlock: 0 },
+  { id: 'flu',       name: 'Flu',          items: ['dose', 'sterile'],          pat: 58, unlock: 20 },
+  { id: 'burn',      name: 'Burn',         items: ['ice', 'bandage'],           pat: 46, unlock: 45 },
+  { id: 'fracture',  name: 'Broken Arm',   items: ['sling', 'pills'],           pat: 54, unlock: 70 },
+  { id: 'infection', name: 'Infection',    items: ['sterile', 'dose', 'bandage'], pat: 70, unlock: 100 },
 ];
 /* Map legend — # wall · | curtain · . floor · , cracked floor · h waiting chairs · S/T airlock walls (take turns)
    C counter · B bed · R tray return · W sink · X bin · P prep bench · M pill counter · F centrifuge · A autoclave
@@ -503,7 +503,7 @@ const LEVELS = [
     trays: [[9, 7], [10, 7], [11, 7], [6, 4]], starts: [[3, 3], [10, 3]], gurneyRows: [2, 6],
     decor: { sign: 11.5, cross: 9.3, clock: 13.4, windows: [2.1, 5, 8], posters: [[12, 0]] },
     theme: { wall: '#d6ede6', back: '#dff2ec', trim: '#6fb8a8', floorA: '#eaf3f3', floorB: '#d3e6e7', bg: '#b9dcd9' },
-    stars: { 1: [90, 190, 290], 2: [150, 310, 470] } },
+    stars: { 1: [80, 170, 260], 2: [135, 280, 420] } },
   { id: 'outpatients', name: 'Outpatients', sign: 'OUTPATIENTS', hazard: 'Lost visitors, wet floors', recipes: ['knee', 'burn', 'fracture'],
     blurb: 'Visitors drift in and out to see patients and grab a seat, stopping right in your way. The cleaner leaves puddles you slide on.',
     map: ['###############',
@@ -521,29 +521,29 @@ const LEVELS = [
     theme: { wall: '#f3e6c8', back: '#f8eed6', trim: '#d39b3a', floorA: '#f3eee2', floorB: '#e3d9c3', bg: '#e2d2ad' },
     stars: { 1: [80, 170, 260], 2: [130, 280, 420] } },
   { id: 'renovation', name: 'Renovation Wing', sign: 'RENOVATION WING', hazard: 'Falling ceiling', recipes: ['fever', 'fracture', 'flu'],
-    blurb: "The builders aren't finished. Cracked tiles mark where the ceiling can come down and block your path.",
+    blurb: "The builders aren't finished. The ceiling comes down anywhere it likes, more and more often, and the rubble stays until a builder clears it.",
     map: ['###############',
           '#CCRW|B|B|B|B|#',
-          '#......,......#',
-          '#.CPC..,..CFC.#',
-          '#,.,..,.,..,.,#',
-          '#.CMC..,..CAC.#',
-          '#......,......#',
+          '#.............#',
+          '#.CPC.....CFC.#',
+          'D.............D',
+          '#.CMC.....CAC.#',
+          '#.............#',
           '#fbCvsiCCCCCCX#',
           '###############'],
     trays: [[8, 7], [9, 7], [10, 7], [11, 7]], starts: [[3, 2], [11, 2]], collapse: true,
     decor: { sign: 3, cross: 13.4, clock: 9, windows: [7, 11], posters: [[1.6, 3]] },
     theme: { wall: '#ddd6cc', back: '#e7e1d8', trim: '#e0a030', floorA: '#e0ddd6', floorB: '#cdc8bf', bg: '#bdb4a6' },
-    stars: { 1: [80, 175, 270], 2: [140, 290, 440] } },
-  { id: 'isolation', name: 'Isolation Unit', sign: 'ISOLATION UNIT', hazard: 'Airlock buttons', recipes: ['fever', 'burn', 'flu', 'infection'],
-    blurb: 'The ward is split down the middle. Hit a red airlock button to swap which doors are open, but never shut one on your partner.',
+    stars: { 1: [75, 160, 245], 2: [125, 260, 395] } },
+  { id: 'isolation', name: 'Isolation Unit', sign: 'ISOLATION UNIT', hazard: 'Sealed airlocks', recipes: ['fever', 'burn', 'flu', 'infection'],
+    blurb: 'A sealed wall splits the ward in two. Hit a red button to open the airlocks, cross while you can, and mind the doors on the way back.',
     map: ['###############',
           '#|B|B|WRC|B|B|#',
-          '#......S......#',
+          '#......#......#',
           '#.CPCK.S.CFFC.#',
-          '#......T......#',
-          '#.CMCC.T.KAAC.#',
-          '#......S......#',
+          '#......#......#',
+          '#.CMCC.S.KAAC.#',
+          '#......#......#',
           '#rCbCCCCCCvsiX#',
           '###############'],
     trays: [[5, 7], [6, 7], [8, 7], [9, 7]], starts: [[3, 2], [11, 2]], sliders: true,
@@ -1534,6 +1534,7 @@ function makeDoctor(scrub, capCol, skin, look = {}) {
   add(body, torsoGeo, sm).scale.z = 0.85;
   add(body, cyl(0.065, 0.075, 0.09, 14), sk, 0, 0.86, 0);
   add(body, cyl(0.07, 0, 0.1, 3), sk, 0, 0.76, 0.152, false).scale.z = 0.25; // V-neck
+  if (look.hardhat) for (const y of [0.5, 0.62]) add(body, cyl(0.228, 0.232, 0.035, 22, true), std('#cfd6da'), 0, y, 0).scale.z = 0.86; // hi-vis bands
   if (!look.plain) {
     const trim = std(shade(scrub, 0.84));
     add(body, box(0.09, 0.07, 0.012), trim, -0.1, 0.62, 0.196, false);                    // chest pocket
@@ -1586,6 +1587,12 @@ function makeDoctor(scrub, capCol, skin, look = {}) {
       const gl = std('#2b2b2b', { metalness: 0.4 });
       for (const sx of [-1, 1]) add(head, tor(0.044, 0.007, 6, 18), gl, sx * 0.075, 0.03, 0.222, false);
       add(head, box(0.05, 0.007, 0.007), gl, 0, 0.04, 0.228, false);
+    }
+    if (look.hardhat) {
+      const hat = std('#ffc233');
+      add(head, new THREE.SphereGeometry(0.252, 22, 10, 0, PI * 2, 0, PI * 0.45), hat, 0, 0.02, 0);
+      add(head, cyl(0.3, 0.3, 0.035, 22), hat, 0, 0.09, 0.01);
+      add(head, box(0.16, 0.03, 0.03), std('#e0a030'), 0, 0.2, 0.06, false);
     }
     if (look.hat) {
       const hat = std(look.hat);
@@ -1894,11 +1901,12 @@ function wetUpdate(dt) {
 const SAYINGS = ['Excuse me!', 'Is this the café?', 'Which way to X-ray?', 'Sorry, sorry!', "I'm looking for my nan", 'Lovely day for it!', 'Where are the lifts?', 'Oh, after you!'];
 const pick = (arr) => arr[(Math.random() * arr.length) | 0];
 function makeVisitorModel(kind, look) {
-  look = look || { shirt: kind === 'cleaner' ? '#5b6f86' : pick(['#e07a5f', '#3d405b', '#81b29a', '#f2cc8f', '#6d597a', '#457b9d', '#e5989b']),
+  look = look || { shirt: kind === 'cleaner' ? '#5b6f86' : kind === 'builder' ? '#f2b134' : pick(['#e07a5f', '#3d405b', '#81b29a', '#f2cc8f', '#6d597a', '#457b9d', '#e5989b']),
+    hardhat: kind === 'builder',
     skin: pick(SKINS), hair: pick(HAIRS), long: Math.random() < 0.4, pants: kind === 'cleaner' ? '#3f4f60' : pick(['#34495e', '#2d3142', '#7a6c5d']),
     glasses: Math.random() < 0.3, hat: kind !== 'cleaner' && Math.random() < 0.2 ? pick(['#e63946', '#2a9d8f', '#f4a261', '#6d597a']) : null };
   const shirt = look.shirt;
-  const m = makeDoctor(shirt, null, look.skin, { hair: look.hair, plain: true, long: look.long, pants: look.pants, glasses: look.glasses, hat: look.hat });
+  const m = makeDoctor(shirt, null, look.skin, { hair: look.hair, plain: true, long: look.long, pants: look.pants, glasses: look.glasses, hat: look.hat, hardhat: look.hardhat });
   m.look = look;
   scene.remove(m.g); levelRoot.add(m.g); m.ring.visible = false;
   if (kind === 'balloon') {
@@ -2116,22 +2124,80 @@ function makeRubbleMesh(t) {
   add(g, cyl(0.02, 0.02, 0.9, 6), std('#b0b7bb', { metalness: 0.5 }), -0.1, 0.3, 0).rotation.set(0.3, 0, 1.2);
   return g;
 }
-function collapseHazard() {
-  const cands = tiles.flat().filter(t => t.ch === ',');
-  const events = []; let next = 14;
-  const makeRubble = makeRubbleMesh;
+// The divider is sealed: the airlocks only open when someone hits a button, and they shut again by themselves.
+let airlockPress = null;
+function pressAirlock(t) {
+  t.pressT = 0.3; tone(300, 0.06, 'square', 0.08, 200);
+  if (airlockPress) airlockPress(t);
+}
+function sliderHazard() {
+  const doors = tiles.flat().filter(t => t.ch === 'S' || t.ch === 'T');
+  const buttons = tiles.flat().filter(t => t.kind === 'switch');
+  let open = 0, closing = 0, beepT = 0;      // open: seconds left standing open; closing: warning countdown
+  const OPEN_TIME = 6.5, WARN = 1.2;
+  const setDoors = (blocked, ko) => doors.forEach(t => { t.blocked = blocked; t.slider.target = blocked ? 1 : 0; if (blocked && ko) evict(t, true); });
+  airlockPress = (btn) => {
+    if (G.state !== 'play') return;
+    if (open > 0) { open = OPEN_TIME; closing = 0; floatText(btn.x, H + 1, btn.y, 'Held open', 'good'); return; }
+    open = OPEN_TIME; closing = 0; setDoors(false, false); sfx.whoosh();
+    floatText(btn.x, H + 1, btn.y, 'Airlocks open', 'good');
+  };
   return {
+    reset() { open = 0; closing = 0; doors.forEach(t => { t.blocked = true; t.slider.target = 1; t.slider.h = 1; }); },
+    update(dt, playing) {
+      for (const t of doors) {
+        const s = t.slider; s.h += (s.target - s.h) * Math.min(1, dt * 18); // snappy doors
+        s.panel.scale.y = Math.max(0.02, s.h); s.warn.material.opacity = 0;
+        s.lampMat.color.set(t.blocked ? '#e23b3b' : '#3dbe6a');
+      }
+      buttons.forEach(b => {
+        b.pressT = Math.max(0, b.pressT - dt);
+        b.btn.position.y = H + 0.08 - (b.pressT > 0 ? 0.05 : 0);
+        b.btn.material.emissiveIntensity = open > 0 ? 1.2 : 0.4;
+      });
+      if (!playing) return;
+      if (open > 0) {
+        open -= dt;
+        if (open <= WARN) { // flashing, beeping, about to shut
+          const pulse = 0.45 + Math.sin(G.t * 16) * 0.35;
+          doors.forEach(t => { t.slider.warn.material.opacity = pulse; t.slider.lampMat.color.set(Math.sin(G.t * 16) > 0 ? '#f2b134' : '#3dbe6a'); });
+          beepT -= dt; if (beepT <= 0) { sfx.alarm(); beepT = 0.28; }
+        }
+        if (open <= 0) { open = 0; setDoors(true, true); sfx.whoosh(); }
+      }
+    },
+  };
+}
+
+// The ceiling can give way anywhere, more and more often as the shift wears on, and the rubble stays
+// until a builder walks in and clears it.
+function collapseHazard() {
+  const events = [], builders = [];
+  let next = 10, spawnT = 3;
+  const openFloor = () => tiles.flat().filter(t => t.kind === 'floor' && !t.blocked && !events.some(e => e.t === t));
+  const doors = () => tiles.flat().filter(t => t.ch === 'D');
+  function newBuilder() {
+    const from = pick(doors()); if (!from) return null;
+    const m = makeVisitorModel('builder');
+    const b = { m, pos: new THREE.Vector3(from.x, 0, from.y), angle: from.x === 0 ? PI / 2 : -PI / 2, route: null, ri: 0, target: null, work: 0, walkT: 0, leaving: false, fade: 1, uid: ++G.uid, look: m.look, kind: 'builder' };
+    m.g.position.copy(b.pos); builders.push(b); return b;
+  }
+  return {
+    builders,
     reset() {
       events.forEach(e => { if (e.g) levelRoot.remove(e.g); levelRoot.remove(e.shadow); e.t.blocked = false; });
-      events.length = 0; next = 14;
+      events.length = 0; builders.forEach(b => levelRoot.remove(b.m.g)); builders.length = 0;
+      next = 10; spawnT = 3;
     },
     update(dt, playing) {
       if (!playing) return;
+      // falls get more frequent and bigger as the shift goes on
       next -= dt;
-      if (next <= 0 && G.left > 10) {
-        next = rand(11, 16);
-        const free = cands.filter(t => !t.blocked && !events.some(e => e.t === t));
-        for (let k = 0; k < 2 && free.length; k++) {
+      if (next <= 0 && G.left > 8) {
+        const rush = Math.min(1, G.elapsed / 150);
+        next = rand(11, 15) - rush * 6.5;
+        const free = openFloor();
+        for (let k = 0, n = 1 + Math.round(rush * 2 + Math.random()); k < n && free.length; k++) {
           const t = free.splice((Math.random() * free.length) | 0, 1)[0];
           const shadow = new THREE.Mesh(cg('shadowDisc', () => new THREE.CircleGeometry(0.5, 24)), new THREE.MeshBasicMaterial({ color: '#1b1510', transparent: true, opacity: 0, depthWrite: false }));
           shadow.rotation.x = -PI / 2; shadow.position.set(t.x, 0.012, t.y); levelRoot.add(shadow);
@@ -2142,62 +2208,66 @@ function collapseHazard() {
       for (let i = events.length - 1; i >= 0; i--) {
         const e = events[i]; e.time += dt;
         if (e.phase === 'warn') {
-          const k = Math.min(1, e.time / 2.3);
+          const k = Math.min(1, e.time / 1.9);
           e.shadow.scale.setScalar(0.3 + k * 0.75); e.shadow.material.opacity = 0.12 + k * 0.4;
           if (Math.random() < dt * 12) emit(e.t.x + rand(-0.35, 0.35), 3.4, e.t.y + rand(-0.35, 0.35), { color: '#bdb5a6', up: -1.2, g: 5, life: 0.9, size: 0.03, sp: 0.05, spread: 0.02 });
-          if (e.time >= 2.3) { e.phase = 'down'; e.time = 0; e.t.blocked = true; e.g = makeRubble(e.t); evict(e.t, true); }
+          if (e.time >= 1.9) { e.phase = 'down'; e.time = 0; e.t.blocked = true; e.g = makeRubbleMesh(e.t); evict(e.t, true); }
         } else if (e.phase === 'down') {
           e.g.position.y = Math.max(0, 3 - e.time * e.time * 45);
           if (!e.landed && e.g.position.y <= 0) {
             e.landed = true; G.shake = 0.22; sfx.crash(); e.shadow.material.opacity = 0.25;
             emit(e.t.x, 0.3, e.t.y, { n: 20, color: ['#d8d1c4', '#a39a8c'], up: 1.1, sp: 1.5, life: 1.3, size: 0.09, grow: 2.6, op: 0.6 });
           }
-          if (e.time > 13) { e.phase = 'clear'; e.time = 0; }
+          if (e.time > 45) { e.phase = 'clear'; e.time = 0; } // nobody came: it crumbles away eventually
         } else {
           e.g.scale.setScalar(Math.max(0.01, 1 - e.time / 0.6));
           if (e.time >= 0.6) { e.t.blocked = false; levelRoot.remove(e.g); levelRoot.remove(e.shadow); events.splice(i, 1); }
         }
       }
-    },
-  };
-}
-
-// Airlocks swap only when someone presses a red button. After a short warning the closing doors shut,
-// knocking out anyone standing in them.
-let airlockPress = null;
-function pressAirlock(t) {
-  t.pressT = 0.3; tone(300, 0.06, 'square', 0.08, 200);
-  if (airlockPress) airlockPress(t);
-}
-function sliderHazard() {
-  const A = tiles.flat().filter(t => t.ch === 'S'), B = tiles.flat().filter(t => t.ch === 'T');
-  const buttons = tiles.flat().filter(t => t.kind === 'switch');
-  let closedA = true, pending = 0, cool = 0, beepT = 0;
-  const set = (t, closed, instant) => { t.blocked = closed; t.slider.target = closed ? 1 : 0; if (instant) t.slider.h = t.slider.target; else if (closed) evict(t, true); };
-  const apply = (instant) => { A.forEach(t => set(t, closedA, instant)); B.forEach(t => set(t, !closedA, instant)); };
-  apply(true);
-  airlockPress = (btn) => {
-    if (G.state !== 'play') return;
-    if (pending > 0 || cool > 0) { sfx.wrong(); floatText(btn.x, H + 1, btn.y, 'Airlocks are still moving', 'bad'); return; }
-    pending = 1.5; floatText(btn.x, H + 1, btn.y, 'Airlocks switching!', 'bad'); sfx.alarm();
-  };
-  return {
-    reset() { closedA = true; pending = 0; cool = 0; apply(true); },
-    update(dt, playing) {
-      for (const t of A.concat(B)) {
-        const s = t.slider; s.h += (s.target - s.h) * Math.min(1, dt * 9);
-        s.panel.scale.y = Math.max(0.02, s.h); s.warn.material.opacity = 0;
-        s.lampMat.color.set(t.blocked ? '#e23b3b' : '#3dbe6a');
-      }
-      buttons.forEach(b => { b.pressT = Math.max(0, b.pressT - dt); b.btn.position.y = H + 0.08 - (b.pressT > 0 ? 0.05 : 0); b.btn.material.emissiveIntensity = pending > 0 ? (Math.sin(G.t * 14) > 0 ? 1.4 : 0.3) : 0.4; });
-      if (!playing) return;
-      cool = Math.max(0, cool - dt);
-      if (pending > 0) {
-        pending -= dt;
-        const closing = closedA ? B : A, pulse = 0.45 + Math.sin(G.t * 14) * 0.35;
-        closing.forEach(t => { t.slider.warn.material.opacity = pulse; t.slider.lampMat.color.set(Math.sin(G.t * 14) > 0 ? '#f2b134' : '#3dbe6a'); });
-        beepT -= dt; if (beepT <= 0) { sfx.alarm(); beepT = 0.35; }
-        if (pending <= 0) { pending = 0; closedA = !closedA; apply(false); cool = 1; sfx.whoosh(); }
+      // builders: walk in, clear a pile, move to the next one, then leave
+      const piles = events.filter(e => e.phase === 'down' && e.landed);
+      spawnT -= dt;
+      const crew = piles.length > 5 ? 3 : 2; // send another builder when the mess piles up
+      if (spawnT <= 0 && builders.length < crew && piles.length > builders.length && G.left > 10) { newBuilder(); spawnT = rand(3.5, 6); }
+      for (const b of builders.slice()) {
+        let moving = false;
+        if (b.leaving && b.ri >= (b.route ? b.route.length : 0)) {
+          b.fade -= dt * 2; b.m.g.scale.setScalar(Math.max(0.01, b.fade));
+          if (b.fade <= 0) { levelRoot.remove(b.m.g); builders.splice(builders.indexOf(b), 1); continue; }
+        } else if (b.work > 0) {
+          b.work -= dt;
+          if (Math.random() < dt * 14) emit(b.target.t.x + rand(-0.3, 0.3), 0.4, b.target.t.y + rand(-0.3, 0.3), { color: ['#d8d1c4', '#a39a8c'], up: 1, life: 0.6, size: 0.05, grow: 2, op: 0.5 });
+          if (Math.random() < dt * 3) sfx.snip();
+          if (b.work <= 0 && b.target && b.target.phase === 'down') { b.target.phase = 'clear'; b.target.time = 0; b.target = null; b.route = null; sfx.done(); }
+        } else if (!b.route) {
+          // pick the nearest pile nobody else is clearing, otherwise head for a door
+          const taken = builders.map(o => o.target).filter(Boolean);
+          const mine = piles.filter(e => !taken.includes(e)).sort((p, q) => Math.hypot(p.t.x - b.pos.x, p.t.y - b.pos.z) - Math.hypot(q.t.x - b.pos.x, q.t.y - b.pos.z))[0];
+          const here = tileAt(Math.round(b.pos.x), Math.round(b.pos.z));
+          if (mine) {
+            const spot = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => tileAt(mine.t.x + dx, mine.t.y + dy)).filter(t => t && t.kind === 'floor' && !t.blocked)[0];
+            if (spot && here) { b.target = mine; b.route = bfs(here, spot) || null; b.ri = 0; }
+            if (!b.route) b.target = null;
+          } else if (here) { b.leaving = true; b.route = bfs(here, pick(doors())) || [[here.x, here.y]]; b.ri = 0; }
+        } else {
+          const [tx, tz] = b.route[b.ri], dx = tx - b.pos.x, dz = tz - b.pos.z, d = Math.hypot(dx, dz);
+          if (d < 0.05) {
+            b.ri++;
+            if (b.ri >= b.route.length) { b.route = b.leaving ? b.route : null; if (!b.leaving && b.target) { b.work = 2.6; b.angle = Math.atan2(b.target.t.x - b.pos.x, b.target.t.y - b.pos.z); } }
+          } else { const st = Math.min(d, 1.7 * dt); b.pos.x += dx / d * st; b.pos.z += dz / d * st; moving = true; b.angle = Math.atan2(dx, dz); }
+        }
+        for (const p of onDuty()) { // builders are solid, but a sprinting doctor can barge past
+          const ox = p.pos.x - b.pos.x, oz = p.pos.z - b.pos.z, od = Math.hypot(ox, oz), min = R + 0.3;
+          if (od < min && od > 1e-4) {
+            if (p.sprinting || p.dashT > 0) { b.pos.x -= ox / od * (min - od); b.pos.z -= oz / od * (min - od); }
+            else { p.pos.x += ox / od * (min - od); p.pos.z += oz / od * (min - od); collide(p); }
+          }
+        }
+        b.walkT += dt * (moving ? 7 : 0);
+        b.m.g.position.set(b.pos.x, 0, b.pos.z); b.m.g.rotation.y = b.angle;
+        b.m.body.position.y = moving ? Math.abs(Math.sin(b.walkT)) * 0.05 : 0;
+        b.m.arms.forEach((a, k) => a.rotation.x = b.work > 0 ? -1.5 + Math.sin(G.t * 14 + k) * 0.6 : moving ? Math.sin(b.walkT + k * PI) * 0.5 : 0);
+        swingLegs(b.m, b.walkT, moving, dt); blinkEyes(b.m, dt);
       }
     },
   };
@@ -2694,19 +2764,19 @@ function pickRecipe() {
 }
 function spawnPatient(bed, recipe = pickRecipe()) {
   const g = makePatient(recipe, BLANKETS[bed.idx % BLANKETS.length]); g.position.set(0, 0.52, -0.72); g.scale.setScalar(0.01); bed.g.add(g);
-  const max = recipe.pat * (G.mode === 1 ? 1.5 : 1);
+  const max = recipe.pat * (G.mode === 1 ? 1.4 : 1);
   const u = g.userData;
   bed.patient = { recipe, g, pat: max, max, state: 'arrive', t: 0, uid: ++G.uid, look: { skinHex: u.skinHex, hairHex: u.hairHex, style: u.style, gownHex: u.gownHex } };
   bed.legs.visible = true; sfx.arrive();
 }
 function patientsUpdate(dt) {
-  const maxP = Math.min(beds.length, 2 + Math.floor(G.elapsed / (G.mode === 1 ? 50 : 38)));
+  const maxP = Math.min(beds.length, 2 + Math.floor(G.elapsed / (G.mode === 1 ? 42 : 30)));
   G.spawnCD -= dt;
   const occupied = beds.filter(b => b.patient).length;
   beds.forEach(b => { if (!b.patient) b.emptyTimer -= dt; });
   if (!G.tutorial && occupied < maxP && G.spawnCD <= 0 && G.left > 12) {
     const free = beds.filter(b => !b.patient && b.emptyTimer <= 0);
-    if (free.length) { spawnPatient(free[(Math.random() * free.length) | 0]); G.spawnCD = 2.2; }
+    if (free.length) { spawnPatient(free[(Math.random() * free.length) | 0]); G.spawnCD = 1.7; }
   }
   for (const b of beds) {
     const p = b.patient; if (!p) continue;
@@ -2731,7 +2801,7 @@ function patientsUpdate(dt) {
     }
   }
 }
-function removePatient(b) { b.g.remove(b.patient.g); b.patient = null; b.legs.visible = false; b.emptyTimer = rand(2.5, 5); }
+function removePatient(b) { b.g.remove(b.patient.g); b.patient = null; b.legs.visible = false; b.emptyTimer = rand(1.5, 3.5); }
 function returnsUpdate(dt) {
   for (let i = G.returnQ.length - 1; i >= 0; i--) {
     G.returnQ[i] -= dt;
@@ -2802,7 +2872,7 @@ function buildHelp() {
       ${has('autoclave') ? st('Autoclave', ['syringe'], ['sterile'], 'Automatic, collect it before it melts') : ''}
       ${shelf('ice') ? `<div class="row"><span><b>Freezer</b><br><span class="unl">Ready to use</span></span><span class="ics">${iconHTML('ice')}</span></div>` : ''}
       <div class="row"><span><b>Sink</b><br><span class="unl">Drop in a stack of dirty trays, hold E to wash them one at a time</span></span><span class="ics">🍽️</span></div>
-      ${has('switch') ? '<div class="row"><span><b>Airlock Button</b><br><span class="unl">Press Space to swap which airlocks are open. Closing doors knock people out.</span></span><span class="ics">🔴</span></div>' : ''}
+      ${has('switch') ? '<div class="row"><span><b>Airlock Button</b><br><span class="unl">Press Space to open both airlocks for a few seconds. They shut by themselves, and knock out anyone in the doorway.</span></span><span class="ics">🔴</span></div>' : ''}
     </div></div>
     <div><h3>Patients</h3><div class="rx">${levelRecipes().map(x => recipeRow(x.r, LV.recipes ? x.unlock : 0)).join('')}</div></div>
     <p class="note">Put finished items on a tray, then carry the tray to the bed whose tag matches. Faster care earns a bigger tip. Wrong trays are refused, and anything spoiled goes in the red bin. Picked up the wrong supply? Press Space at its shelf to put it back.</p>
