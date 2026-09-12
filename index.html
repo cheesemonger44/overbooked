@@ -115,6 +115,23 @@
   .mode .rec{position:absolute;left:10px;top:10px;font:700 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
              background:var(--ink);color:var(--manila);padding:6px 8px;border-radius:5px}
   .foot-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .modes.two{grid-template-columns:1fr 1fr}
+  .mode.online{--acc:#1d6fb8;--tint:#d9ecfb}
+  .codebox{display:flex;align-items:center;gap:14px;background:var(--mon);border:2.5px solid var(--ink);border-radius:12px;padding:12px 16px}
+  .codebox b{font:44px/1 var(--mono);letter-spacing:.22em;color:var(--phos);text-shadow:0 0 12px rgba(92,242,155,.45)}
+  .codelabel{font:11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--phos-dim)}
+  .codeform{display:flex;gap:10px;margin-top:6px}
+  .codeform input{font:34px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;width:100%;max-width:230px;padding:8px 12px;border:2.5px solid var(--ink);
+                  border-radius:12px;background:#fff;color:var(--ink)}
+  .codeform button{font:18px/1 var(--display);cursor:pointer;border:2.5px solid var(--ink);border-radius:12px;padding:0 22px;background:var(--teal);color:#fff;box-shadow:0 5px 0 var(--ink)}
+  .codeform button:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+  .netstatus{font:15px/1.4 var(--body);color:#4b6164;margin:0;min-height:22px}
+  .netstatus.bad{color:var(--red);font-weight:700}
+  .netstatus.good{color:var(--teal);font-weight:700}
+  #netTag{position:fixed;top:12px;left:12px;z-index:3;font:700 11px/1 var(--mono);letter-spacing:.1em;background:#fff;border:2px solid var(--ink);
+          border-radius:8px;padding:6px 9px;display:flex;gap:7px;align-items:center;box-shadow:0 3px 0 rgba(27,43,46,.25)}
+  #netTag i{width:8px;height:8px;border-radius:50%;background:var(--green);display:block}
+  #netTag.warn i{background:var(--amber)} #netTag.bad i{background:var(--red)}
   .help-head{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:10px}
   .help-head h3{margin:0}
   .flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;counter-reset:step}
@@ -257,6 +274,7 @@
   </div>
 </div>
 <div id="hints" hidden></div>
+<div id="netTag" hidden></div>
 <div id="banner"></div>
 <div id="np" class="np" hidden aria-live="polite"></div>
 
@@ -296,6 +314,11 @@
         <span class="mbody"><span class="mt">Co-op shift</span><span class="ms">Tom and Kate together, on one keyboard or two gamepads.</span></span>
         <kbd class="hot">2</kbd>
       </button>
+      <button class="mode online" data-online="1" type="button">
+        <span class="art"><img id="artOnline" alt=""><span class="rec">Play together</span></span>
+        <span class="mbody"><span class="mt">Online shift</span><span class="ms">Share a code with a friend and play one ward together, wherever they are.</span></span>
+        <kbd class="hot">O</kbd>
+      </button>
       <button class="mode orient" data-tut="1" type="button">
         <span class="art"><canvas id="artOrient" width="300" height="180"></canvas><span class="rec" id="orientRec">Start here</span></span>
         <span class="mbody"><span class="mt">Orientation</span><span class="ms">One bed, no clock, and step-by-step help with every treatment.</span></span>
@@ -305,6 +328,33 @@
     <div class="foot">
       <div class="best" id="best"></div>
       <div class="foot-btns"><button id="btnHow" class="mini" type="button">How to play <kbd>H</kbd></button><button id="menuMusic" class="tog mini" type="button" aria-pressed="true">♪ Music <kbd>N</kbd></button></div>
+    </div>
+  </div></div>
+</div>
+
+<div id="online" class="screen" hidden>
+  <div class="clip" style="width:min(620px,100%)"><div class="sheet">
+    <div class="sheet-head"><div class="logo" style="font-size:40px">PLAY <span>TOGETHER</span></div><div class="meta" id="onlineMeta">ONLINE CO-OP<br>TWO DOCTORS, TWO HOUSES</div></div>
+    <div id="onlinePick" class="modes two">
+      <button class="mode solo" id="btnHost" type="button">
+        <span class="mbody"><span class="mt">Host a game</span><span class="ms">You run the ward and get a code to share. You play Doctor Tom.</span></span>
+      </button>
+      <button class="mode duo" id="btnJoinOpen" type="button">
+        <span class="mbody"><span class="mt">Join a game</span><span class="ms">Enter your friend's code. You play Doctor Kate.</span></span>
+      </button>
+    </div>
+    <div id="onlineJoin" hidden>
+      <label class="codelabel" for="joinCode">Room code</label>
+      <div class="codeform"><input id="joinCode" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD"><button id="btnJoinGo" type="button">Join</button></div>
+    </div>
+    <div id="onlineLobby" hidden>
+      <div class="codebox"><span class="codelabel">Room code</span><b id="lobbyCode">····</b></div>
+      <div class="row-btns"><button id="btnCopyLink" class="alt" type="button">Copy invite link</button></div>
+    </div>
+    <p class="netstatus" id="netStatus"></p>
+    <div class="row-btns">
+      <button id="btnOnlineGo" type="button" hidden>Pick a ward <kbd>Enter</kbd></button>
+      <button id="btnOnlineBack" class="alt" type="button">Back</button>
     </div>
   </div></div>
 </div>
@@ -561,7 +611,7 @@ function noise(d, v = 0.15, freq = 2000, delay = 0, type = 'highpass') {
   g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + d + 0.02);
 }
-const sfx = {
+const sfxRaw = {
   pick() { tone(520, .08, 'triangle', .16, 780); },
   place() { tone(280, .09, 'triangle', .2, 170); },
   snip() { noise(.045, .1, 3500); },
@@ -602,13 +652,17 @@ const sfx = {
 };
 
 // Animal Crossing-style gibberish: a quick run of pitched blips, one per "syllable".
-function babble(pitch = 1, n = 8, delay = 0) {
+// On the host, these also go down the wire so the guest hears and sees the same thing.
+const sfx = {};
+for (const k of Object.keys(sfxRaw)) sfx[k] = (...args) => { netEvent(['s', k, args[0]]); return sfxRaw[k](...args); };
+function babbleRaw(pitch = 1, n = 8, delay = 0) {
   if (!actx || muted) return;
   for (let i = 0; i < n; i++) {
     const f = (210 + Math.random() * 190) * pitch;
     tone(f, 0.055, i % 3 ? 'square' : 'triangle', 0.028, f * (Math.random() < 0.5 ? 1.18 : 0.88), delay + i * 0.072);
   }
 }
+const babble = (pitch, n, delay) => { netEvent(['ba', pitch, n]); return babbleRaw(pitch, n, delay); };
 /* =============================== MUSIC =============================== */
 // Four original 8-bar tunes, scheduled a few 16th-note steps ahead on the audio clock and shuffled between.
 const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -788,7 +842,7 @@ function musicLevel() {
   if (!MUSIC.on || muted) return -1;
   const s = G.state;
   if (s === 'paused' || s === 'over') return -1;
-  if (s === 'menu' || s === 'howto' || s === 'choose' || s === 'levels' || s === 'tutdone') return 0;
+  if (s === 'menu' || s === 'howto' || s === 'online' || s === 'choose' || s === 'levels' || s === 'tutdone') return 0;
   if (G.tutorial) return 1;
   return G.left <= 30 && s === 'play' ? 3 : 2;
 }
@@ -1590,12 +1644,12 @@ const GOWNS = [['#a9d2ee', '#ffffff'], ['#bfe3cf', '#ffffff'], ['#f2c6d6', '#fff
   return std('#ffffff', { map: t, roughness: 0.9 });
 });
 const HAIRSTYLES = ['short', 'bun', 'long', 'curly', 'balding'];
-function makePatient(recipe, blanket) {
+function makePatient(recipe, blanket, look) {
   const g = new THREE.Group(), id = recipe.id;
-  const skinHex = pick(SKINS), skin = std(skinHex);
+  const skinHex = look ? look.skinHex : pick(SKINS), skin = std(skinHex);
   if (id === 'flu' || id === 'infection') skin.color.lerp(new THREE.Color('#a8d88a'), 0.3);
   if (id === 'fever') skin.color.lerp(new THREE.Color('#ff8a7a'), 0.16);
-  const gownIdx = (Math.random() * GOWNS.length) | 0, gown = GOWNS[gownIdx];
+  const gownIdx = look ? ['#a9d2ee', '#bfe3cf', '#f2c6d6'].indexOf(look.gownHex) : (Math.random() * GOWNS.length) | 0, gown = GOWNS[Math.max(0, gownIdx)];
   const body = new THREE.Group(); body.rotation.x = -0.12; g.add(body); // leaning back on the pillow
   add(body, capg(0.21, 0.2), gown, 0, 0.3, 0);
   add(body, sph(0.07, 12, 8), skin, 0, 0.55, 0.13).scale.set(1, 0.55, 0.45); // neckline
@@ -1611,7 +1665,7 @@ function makePatient(recipe, blanket) {
   if (id === 'fever' || id === 'burn') for (const sx of [-1, 1]) add(head, sph(0.035, 8, 6), std('#ff7b7b'), sx * 0.12, -0.04, 0.16, false).scale.z = 0.4;
   if (id === 'infection') for (let i = 0; i < 6; i++) { const a = rand(-1.1, 1.1), y = rand(-0.1, 0.12); add(head, sph(0.018, 6, 5), std('#5aa33c'), Math.sin(a) * 0.2, y, Math.cos(a) * 0.2 * Math.cos(y * 2), false); }
   // hair
-  const style = pick(HAIRSTYLES), hairHex = style === 'balding' ? '#cfcfcf' : pick(HAIRS), hm = std(hairHex, { roughness: 0.85 });
+  const style = look ? look.style : pick(HAIRSTYLES), hairHex = look ? look.hairHex : (style === 'balding' ? '#cfcfcf' : pick(HAIRS)), hm = std(hairHex, { roughness: 0.85 });
   if (style === 'balding') {
     for (const sx of [-1, 1]) add(head, sph(0.075, 10, 8), hm, sx * 0.18, 0.04, -0.06).scale.set(0.6, 0.75, 1);
     add(head, new THREE.SphereGeometry(0.214, 20, 8, PI * 1.1, PI * 0.8, PI * 0.35, PI * 0.25), hm);
@@ -1829,10 +1883,13 @@ function wetUpdate(dt) {
 
 const SAYINGS = ['Excuse me!', 'Is this the café?', 'Which way to X-ray?', 'Sorry, sorry!', "I'm looking for my nan", 'Lovely day for it!', 'Where are the lifts?', 'Oh, after you!'];
 const pick = (arr) => arr[(Math.random() * arr.length) | 0];
-function makeVisitorModel(kind) {
-  const shirt = kind === 'cleaner' ? '#5b6f86' : pick(['#e07a5f', '#3d405b', '#81b29a', '#f2cc8f', '#6d597a', '#457b9d', '#e5989b']);
-  const m = makeDoctor(shirt, null, pick(SKINS), { hair: pick(HAIRS), plain: true, long: Math.random() < 0.4, pants: kind === 'cleaner' ? '#3f4f60' : pick(['#34495e', '#2d3142', '#7a6c5d']),
-    glasses: Math.random() < 0.3, hat: kind !== 'cleaner' && Math.random() < 0.2 ? pick(['#e63946', '#2a9d8f', '#f4a261', '#6d597a']) : null });
+function makeVisitorModel(kind, look) {
+  look = look || { shirt: kind === 'cleaner' ? '#5b6f86' : pick(['#e07a5f', '#3d405b', '#81b29a', '#f2cc8f', '#6d597a', '#457b9d', '#e5989b']),
+    skin: pick(SKINS), hair: pick(HAIRS), long: Math.random() < 0.4, pants: kind === 'cleaner' ? '#3f4f60' : pick(['#34495e', '#2d3142', '#7a6c5d']),
+    glasses: Math.random() < 0.3, hat: kind !== 'cleaner' && Math.random() < 0.2 ? pick(['#e63946', '#2a9d8f', '#f4a261', '#6d597a']) : null };
+  const shirt = look.shirt;
+  const m = makeDoctor(shirt, null, look.skin, { hair: look.hair, plain: true, long: look.long, pants: look.pants, glasses: look.glasses, hat: look.hat });
+  m.look = look;
   scene.remove(m.g); levelRoot.add(m.g); m.ring.visible = false;
   if (kind === 'balloon') {
     add(m.g, cyl(0.006, 0.006, 0.95, 4), M.white, 0.32, 1.25, 0.1, false);
@@ -1898,7 +1955,7 @@ function visitorHazard(cfg) {
   }
   function spawn(kind, at, goals = planFor(kind)) {
     const m = makeVisitorModel(kind);
-    const n = { m, kind, pos: new THREE.Vector3(at.x, 0, at.y), angle: at.x === 0 ? PI / 2 : at.x === 14 ? -PI / 2 : 0,
+    const n = { m, uid: ++G.uid, look: m.look, kind, pos: new THREE.Vector3(at.x, 0, at.y), angle: at.x === 0 ? PI / 2 : at.x === 14 ? -PI / 2 : 0,
       goals, route: null, ri: 0, act: null, actT: 0, wait: 0, sayT: -3, say: '', lastTile: null, walkT: Math.random() * 6,
       fade: 1, leaving: false, chair: null, speed: kind === 'cleaner' ? 1.0 : rand(1.2, 1.6), voice: rand(0.75, 1.6), fallT: 0 };
     m.g.position.copy(n.pos);
@@ -2038,20 +2095,21 @@ function visitorHazard(cfg) {
   };
 }
 
+const rubbleMats = [std('#8d8579'), std('#a39a8c'), std('#6f675d')];
+function makeRubbleMesh(t) {
+  const g = new THREE.Group(); g.position.set(t.x, 3, t.y); levelRoot.add(g);
+  for (let i = 0; i < 7; i++) {
+    const m = add(g, cg('rub' + (i % 3), () => new THREE.DodecahedronGeometry(0.15 + (i % 3) * 0.06)), rubbleMats[i % 3], rand(-0.3, 0.3), 0.12 + (i > 4 ? 0.2 : 0), rand(-0.3, 0.3));
+    m.rotation.set(rand(0, 3), rand(0, 3), 0);
+  }
+  add(g, box(0.8, 0.05, 0.6), std('#ece8df'), 0.05, 0.34, 0.05).rotation.set(0.5, 0.3, 0.2);
+  add(g, cyl(0.02, 0.02, 0.9, 6), std('#b0b7bb', { metalness: 0.5 }), -0.1, 0.3, 0).rotation.set(0.3, 0, 1.2);
+  return g;
+}
 function collapseHazard() {
   const cands = tiles.flat().filter(t => t.ch === ',');
-  const rubbleMats = [std('#8d8579'), std('#a39a8c'), std('#6f675d')];
   const events = []; let next = 14;
-  function makeRubble(t) {
-    const g = new THREE.Group(); g.position.set(t.x, 3, t.y); levelRoot.add(g);
-    for (let i = 0; i < 7; i++) {
-      const m = add(g, cg('rub' + (i % 3), () => new THREE.DodecahedronGeometry(0.15 + (i % 3) * 0.06)), rubbleMats[i % 3], rand(-0.3, 0.3), 0.12 + (i > 4 ? 0.2 : 0), rand(-0.3, 0.3));
-      m.rotation.set(rand(0, 3), rand(0, 3), 0);
-    }
-    add(g, box(0.8, 0.05, 0.6), std('#ece8df'), 0.05, 0.34, 0.05).rotation.set(0.5, 0.3, 0.2);
-    add(g, cyl(0.02, 0.02, 0.9, 6), std('#b0b7bb', { metalness: 0.5 }), -0.1, 0.3, 0).rotation.set(0.3, 0, 1.2);
-    return g;
-  }
+  const makeRubble = makeRubbleMesh;
   return {
     reset() {
       events.forEach(e => { if (e.g) levelRoot.remove(e.g); levelRoot.remove(e.shadow); e.t.blocked = false; });
@@ -2144,7 +2202,7 @@ function spawnLeaver(bed, u) {
   const exits = (doorTiles.length ? doorTiles.slice() : [tileAt(0, start.y), tileAt(14, start.y)]).filter(Boolean)
     .sort((a, b) => Math.abs(a.x - bed.x) + Math.abs(a.y - start.y) - Math.abs(b.x - bed.x) - Math.abs(b.y - start.y));
   let route = null; for (const ex of exits) { route = bfs(start, ex); if (route) break; }
-  const n = { m, pos: new THREE.Vector3(bed.x, 0, bed.tile.y + 0.2), route: route || [[start.x, start.y]], ri: 0, fade: 1, walkT: 0, angle: 0, voice: rand(0.8, 1.5), hop: 0 };
+  const n = { m, uid: ++G.uid, look: { gownHex: u.gownHex, skinHex: u.skinHex, hairHex: u.hairHex, style: u.style }, pos: new THREE.Vector3(bed.x, 0, bed.tile.y + 0.2), route: route || [[start.x, start.y]], ri: 0, fade: 1, walkT: 0, angle: 0, voice: rand(0.8, 1.5), hop: 0 };
   m.g.position.copy(n.pos); leavers.push(n); babble(n.voice * 1.2, 6);
 }
 function leaversUpdate(dt) {
@@ -2325,14 +2383,24 @@ function readPads() {
 
 function intentFor(i) {
   const it = { mx: 0, mz: 0, grab: false, work: false, dash: false, sprint: false };
+  if (G.online) {
+    const mine = NET.mode === 'guest' ? 1 : 0;
+    if (i !== mine) { // the other doctor is driven from the other computer
+      const g = NET.mode === 'host' ? NET.guestIn : null;
+      if (!g) return it;
+      const out = { mx: g.mx, mz: g.mz, grab: !!g.grab, work: !!g.work, dash: !!g.dash, sprint: !!g.sprint };
+      g.grab = false; g.dash = false; // one-shot presses fire once
+      return out;
+    }
+  }
   if (G.mode === 1 && i !== G.active) return it;
-  const sets = G.mode === 1 ? [P1KEYS, P2KEYS] : [i === 0 ? P1KEYS : P2KEYS];
+  const sets = (G.mode === 1 || G.online) ? [P1KEYS, P2KEYS] : [i === 0 ? P1KEYS : P2KEYS];
   for (const s of sets) {
     if (anyKey(s.up)) it.mz -= 1; if (anyKey(s.down)) it.mz += 1;
     if (anyKey(s.left)) it.mx -= 1; if (anyKey(s.right)) it.mx += 1;
     if (anyPressed(s.grab)) it.grab = true; if (anyKey(s.work)) it.work = true; if (anyPressed(s.dash)) it.dash = true; if (anyKey(s.dash)) it.sprint = true;
   }
-  const padIdx = G.mode === 1 ? [0, 1] : [i];
+  const padIdx = (G.mode === 1 || G.online) ? [0, 1] : [i];
   for (const pi of padIdx) {
     const p = pads[pi]; if (!p) continue;
     it.mx += p.ax; it.mz += p.az;
@@ -2355,15 +2423,17 @@ function ov(key, x, y, z, html) {
   o.el.style.transform = `translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px)`;
 }
 function ovFlush() { for (const [k, o] of ovMap) if (o.frame !== ovFrame) { o.el.remove(); ovMap.delete(k); } ovFrame++; }
-function floatText(x, y, z, html, cls = '') {
+function floatTextRaw(x, y, z, html, cls = '') {
   const [sx, sy] = toScreen(x, y, z);
   const el = document.createElement('div'); el.className = 'float ' + cls; el.innerHTML = html;
   el.style.left = sx + 'px'; el.style.top = sy + 'px'; ovRoot.appendChild(el);
   el.addEventListener('animationend', () => el.remove());
 }
-function banner(html, cls = '') {
+function bannerRaw(html, cls = '') {
   const b = $('#banner'); b.className = ''; b.innerHTML = html; void b.offsetWidth; b.className = 'show ' + cls;
 }
+const floatText = (x, y, z, html, cls = '') => { netEvent(['f', r2(x), r2(y), r2(z), html, cls]); floatTextRaw(x, y, z, html, cls); };
+const banner = (html, cls = '') => { netEvent(['b', html, cls]); bannerRaw(html, cls); };
 function itemBadge(it) {
   if (it.type === 'tray') return it.contents.length ? `<div class="badge">${it.contents.map(iconHTML).join('')}</div>` : '';
   if (it.type === 'dirty') return it.count > 1 ? `<div class="badge" style="font:700 12px/1.3 var(--mono)">${it.count}× dirty</div>` : '';
@@ -2395,7 +2465,7 @@ function updateParts(dt) {
 const CONFETTI = ['#5CF29B', '#F2B134', '#E23B3B', '#4aa3ff', '#ffffff', '#c9a6e8'];
 
 /* =============================== GAME STATE =============================== */
-const G = { state: 'menu', mode: 1, tutorial: false, active: 0, level: 0, left: SHIFT, elapsed: 0, score: 0, treated: 0, lost: 0, spawnCD: 0, cd: 0, lastRecipe: null, returnQ: [], alarmT: 0, tickSec: -1, t: 0, overT: 0, streak: 0, shake: 0 };
+const G = { state: 'menu', mode: 1, tutorial: false, online: false, uid: 0, active: 0, level: 0, left: SHIFT, elapsed: 0, score: 0, treated: 0, lost: 0, spawnCD: 0, cd: 0, lastRecipe: null, returnQ: [], alarmT: 0, tickSec: -1, t: 0, overT: 0, streak: 0, shake: 0 };
 try { G.level = clamp(+(localStorage.getItem('overbooked-level') || 0) | 0, 0, LEVELS.length - 1); } catch (e) {}
 
 function resetLevel() {
@@ -2615,7 +2685,8 @@ function pickRecipe() {
 function spawnPatient(bed, recipe = pickRecipe()) {
   const g = makePatient(recipe, BLANKETS[bed.idx % BLANKETS.length]); g.position.set(0, 0.52, -0.72); g.scale.setScalar(0.01); bed.g.add(g);
   const max = recipe.pat * (G.mode === 1 ? 1.5 : 1);
-  bed.patient = { recipe, g, pat: max, max, state: 'arrive', t: 0 };
+  const u = g.userData;
+  bed.patient = { recipe, g, pat: max, max, state: 'arrive', t: 0, uid: ++G.uid, look: { skinHex: u.skinHex, hairHex: u.hairHex, style: u.style, gownHex: u.gownHex } };
   bed.legs.visible = true; sfx.arrive();
 }
 function patientsUpdate(dt) {
@@ -2729,6 +2800,11 @@ function buildHelp() {
 }
 function setHints() {
   const h = $('#hints');
+  if (G.online) {
+    const me = NET.mode === 'guest' ? DOCS[1] : DOCS[0];
+    h.innerHTML = `<span style="color:${me.css}"><b>You are ${me.name}</b></span><span><b>WASD</b> or arrows move</span><span><b>Space</b> grab / place</span><span><b>E</b> hold to prep</span><span><b>Shift</b> dash · hold to sprint</span>`;
+    return;
+  }
   h.innerHTML = G.mode === 1
     ? `<span><b>WASD</b> move</span><span><b>Space</b> grab / place</span><span><b>E</b> hold to prep</span><span><b>Shift</b> dash · hold to sprint</span>`
     : `<span style="color:${DOCS[0].css}"><b>Doctor Tom</b> WASD · Space · E · L-Shift</span><span style="color:${DOCS[1].css}"><b>Doctor Kate</b> Arrows · Enter · R-Shift · /</span>`;
@@ -2744,19 +2820,21 @@ function startGame(mode, tutorial = false) {
   resetLevel(); setHints();
   G.active = mode === 1 ? G.chosen : 0;
   musicShuffle();
-  ['#menu', '#end', '#pause', '#help', '#tutDone', '#choose', '#levels', '#howto'].forEach(s => $(s).hidden = true);
+  ['#menu', '#end', '#pause', '#help', '#tutDone', '#choose', '#levels', '#howto', '#online'].forEach(s => $(s).hidden = true);
   $('#hud').hidden = false; $('#hints').hidden = tutorial; $('#coach').hidden = !tutorial;
   if (tutorial) {
     TUT.li = 0; TUT.si = 0; TUT.flags = new Set(); TUT.spawned = false; TUT.dist = 0;
     CB.next = 1e9; G.state = 'play'; updateTimer(); renderCoach();
     banner('ORIENTATION<span class="sub">One bed · no clock</span>'); sfx.go();
   } else { G.state = 'countdown'; G.cd = 3.4; G.lastCd = 4; G.intro = 2.4; }
+  if (NET.mode === 'host' && NET.ready) { G.online = true; netSend({ t: 'start', lv: G.level }); netTag('ONLINE · DOCTOR TOM'); }
   if (document.activeElement) document.activeElement.blur();
 }
 function openHowto() { if (G.state !== 'menu') return; G.state = 'howto'; $('#menu').hidden = true; $('#howto').hidden = false; }
 function closeHowto() { if (G.state !== 'howto') return; G.state = 'menu'; $('#howto').hidden = true; $('#menu').hidden = false; }
 function goMenu() {
-  ['#end', '#hud', '#hints', '#pause', '#coach', '#tutDone', '#help', '#choose', '#levels', '#howto'].forEach(s => $(s).hidden = true);
+  if (NET.mode !== 'off') { netSend({ t: 'bye' }); netStop(); guestClear(); }
+  ['#end', '#hud', '#hints', '#pause', '#coach', '#tutDone', '#help', '#choose', '#levels', '#howto', '#online'].forEach(s => $(s).hidden = true);
   G.state = 'menu'; G.tutorial = false; players.forEach(p => p.off = false);
   if (LV.idx !== G.level) loadLevel(G.level);
   resetLevel(); $('#menu').hidden = false; buildCharts(); menuArt();
@@ -3021,6 +3099,7 @@ function updateGuides() {
 function endShift() {
   G.state = 'over'; G.overT = 0; banner("TIME'S UP!"); sfx.fail();
   const th = LV.stars[G.mode], stars = th.filter(v => G.score >= v).length; G.stars = stars;
+  if (NET.mode === 'host' && NET.ready) netSend({ t: 'end', score: G.score, treated: G.treated, lost: G.lost, stars });
   const rec = records(), key = `${LV.id}-${G.mode}`, prev = rec[key] || { score: 0, stars: 0 };
   const best = prev.score;
   rec[key] = { score: Math.max(prev.score, G.score), stars: Math.max(prev.stars, stars) };
@@ -3039,7 +3118,9 @@ function togglePause(force) {
   $('#pause').hidden = !p;
   if (p) {
     $('#pauseMeta').innerHTML = G.tutorial ? 'ORIENTATION<br>NO CLOCK' : `${LV.name.toUpperCase()}<br>${fmtTime(G.left)} LEFT · ${G.score} PTS`;
-    $('#btnQuit').hidden = G.tutorial; $('#btnRestart').textContent = G.tutorial ? 'Restart orientation' : 'Restart shift';
+    $('#btnQuit').hidden = G.tutorial || G.online; $('#btnRestart').hidden = G.online;
+    $('#btnRestart').textContent = G.tutorial ? 'Restart orientation' : 'Restart shift';
+    $('#btnPauseMenu').textContent = G.online ? 'Leave the game' : 'Return to main menu';
     if (document.activeElement) document.activeElement.blur();
   }
   if (!p) for (const k in keys) keys[k] = false;
@@ -3057,8 +3138,9 @@ function syncAudioUI() {
 function onUIKey(e) {
   initAudio();
   if (e.code === 'KeyN') { if (e.shiftKey && MUSIC.on) musicNext(); else toggleMusic(); return; }
-  if (G.state === 'menu') { if (e.code === 'Digit1') openChooser(false); if (e.code === 'Digit2') openLevels(2); if (e.code === 'KeyT' || e.code === 'Digit0') openChooser(true); if (e.code === 'KeyH') openHowto(); return; }
+  if (G.state === 'menu') { if (e.code === 'Digit1') openChooser(false); if (e.code === 'Digit2') openLevels(2); if (e.code === 'KeyT' || e.code === 'Digit0') openChooser(true); if (e.code === 'KeyH') openHowto(); if (e.code === 'KeyO') openOnline(); return; }
   if (G.state === 'howto') { if (['Escape', 'Enter', 'KeyH', 'Space'].includes(e.code)) closeHowto(); return; }
+  if (G.state === 'online') { if (e.code === 'Escape') closeOnline(); if (e.code === 'Enter' && !$('#btnOnlineGo').hidden) openLevels(2); return; }
   if (G.state === 'choose') {
     if (['ArrowLeft', 'KeyA', 'Digit1'].includes(e.code)) selectDoctor(0);
     if (['ArrowRight', 'KeyD', 'Digit2'].includes(e.code)) selectDoctor(1);
@@ -3083,7 +3165,19 @@ function onUIKey(e) {
   if (e.code === 'KeyH') toggleHelp();
   if (e.code === 'KeyM') toggleMute();
 }
-document.querySelectorAll('.modes button').forEach(b => b.addEventListener('click', () => b.dataset.tut ? openChooser(true) : +b.dataset.mode === 1 ? openChooser(false) : openLevels(2)));
+document.querySelectorAll('#menu .modes button').forEach(b => b.addEventListener('click', () => b.dataset.online ? openOnline() : b.dataset.tut ? openChooser(true) : +b.dataset.mode === 1 ? openChooser(false) : openLevels(2)));
+$('#btnHost').onclick = () => hostOnline();
+$('#btnJoinOpen').onclick = () => openJoin();
+$('#btnJoinGo').onclick = () => joinOnline($('#joinCode').value);
+$('#joinCode').addEventListener('keydown', e => { if (e.code === 'Enter') { e.preventDefault(); joinOnline($('#joinCode').value); } });
+$('#btnOnlineGo').onclick = () => openLevels(2);
+$('#btnOnlineBack').onclick = () => closeOnline();
+$('#btnCopyLink').onclick = (e) => {
+  const url = location.origin + location.pathname + '?join=' + NET.code;
+  try { navigator.clipboard.writeText(url); netStatus('Invite link copied. Send it to your friend.', 'good'); }
+  catch (err) { netStatus('Copy this link: ' + url); }
+  e.currentTarget.blur();
+};
 $('#btnHelp').onclick = (e) => { toggleHelp(); e.currentTarget.blur(); };
 $('#btnMute').onclick = (e) => { toggleMute(); e.currentTarget.blur(); };
 $('#btnMusic').onclick = (e) => { toggleMusic(); e.currentTarget.blur(); };
@@ -3105,6 +3199,293 @@ $('#btnMenu').onclick = () => openLevels(G.mode);
 $('#btnNext').onclick = () => { G.level = Math.min(LEVELS.length - 1, G.level + 1); try { localStorage.setItem('overbooked-level', String(G.level)); } catch (e) {} startGame(G.mode); };
 buildCharts();
 
+/* =============================== ONLINE CO-OP =============================== */
+// Host-and-guest over WebRTC (PeerJS): the host simulates the whole ward and sends ~20 snapshots a second;
+// the guest sends its controls and draws what it is told, predicting its own doctor so the controls feel instant.
+const NET = { mode: 'off', peer: null, conn: null, code: '', guestIn: null, seq: 0, snap: null, evq: [], sendT: 0, rxT: 0, ready: false, joinCode: '' };
+const PEER_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js';
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const makeCode = () => Array.from({ length: 4 }, () => CODE_CHARS[(Math.random() * CODE_CHARS.length) | 0]).join('');
+const peerIdFor = (code) => 'overbooked-ward4b-' + code;
+const r2 = (v) => Math.round(v * 100) / 100, r1 = (v) => Math.round(v * 10) / 10;
+let peerLibP = null;
+function loadPeerLib() {
+  if (window.Peer) return Promise.resolve(window.Peer);
+  if (!peerLibP) peerLibP = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = PEER_LIB;
+    s.onload = () => window.Peer ? res(window.Peer) : rej(new Error('missing'));
+    s.onerror = () => rej(new Error('blocked'));
+    document.head.appendChild(s);
+    setTimeout(() => rej(new Error('timeout')), 9000);
+  });
+  return peerLibP;
+}
+function netStatus(text, kind = '') { const el = $('#netStatus'); el.textContent = text; el.className = 'netstatus ' + kind; }
+function netTag(text, kind = '') { const el = $('#netTag'); el.hidden = !text; if (text) { el.innerHTML = `<i></i>${text}`; el.className = kind; } }
+
+/* ---------- lobby ---------- */
+function openOnline() {
+  G.state = 'online';
+  ['#menu', '#choose', '#levels', '#end', '#tutDone', '#howto'].forEach(s => $(s).hidden = true);
+  $('#online').hidden = false; $('#onlinePick').hidden = false; $('#onlineJoin').hidden = true; $('#onlineLobby').hidden = true;
+  $('#btnOnlineGo').hidden = true; netStatus('');
+  if (document.activeElement) document.activeElement.blur();
+}
+function closeOnline(toMenu = true) { netStop(); if (toMenu) goMenu(); }
+async function hostOnline() {
+  $('#onlinePick').hidden = true; netStatus('Connecting to the lobby service…');
+  let Peer;
+  try { Peer = await loadPeerLib(); } catch (e) {
+    netStatus('This copy of the game can\'t reach the lobby service. Online play needs the hosted version (GitHub Pages), not the claude.ai page.', 'bad');
+    $('#onlinePick').hidden = false; return;
+  }
+  NET.mode = 'host'; NET.code = makeCode();
+  NET.peer = new Peer(peerIdFor(NET.code), { debug: 0 });
+  NET.peer.on('open', () => {
+    $('#onlineLobby').hidden = false; $('#lobbyCode').textContent = NET.code;
+    netStatus('Waiting for your friend to join. Send them the code or the invite link.');
+  });
+  NET.peer.on('connection', c => { if (NET.conn) { c.close(); return; } bindConn(c); });
+  NET.peer.on('error', e => {
+    if (e.type === 'unavailable-id') { NET.peer.destroy(); NET.peer = null; hostOnline(); return; } // code taken, try another
+    netStatus('Lobby service problem: ' + e.type + '. Try again in a moment.', 'bad');
+  });
+}
+function openJoin() { $('#onlinePick').hidden = true; $('#onlineJoin').hidden = false; netStatus('Ask your friend for their four-character code.'); $('#joinCode').focus(); }
+async function joinOnline(code) {
+  code = (code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  if (code.length !== 4) { netStatus('That code should be four characters.', 'bad'); return; }
+  netStatus('Connecting…');
+  let Peer;
+  try { Peer = await loadPeerLib(); } catch (e) {
+    netStatus('This copy of the game can\'t reach the lobby service. Online play needs the hosted version (GitHub Pages), not the claude.ai page.', 'bad'); return;
+  }
+  NET.mode = 'guest'; NET.code = code;
+  NET.peer = new Peer({ debug: 0 });
+  NET.peer.on('open', () => {
+    const c = NET.peer.connect(peerIdFor(code), { reliable: true, metadata: { game: 'overbooked' } });
+    bindConn(c);
+    setTimeout(() => { if (!NET.ready) netStatus('No answer yet. Check the code, and that your friend\'s lobby is still open.', 'bad'); }, 6000);
+  });
+  NET.peer.on('error', e => netStatus(e.type === 'peer-unavailable' ? 'No game found with that code.' : 'Connection problem: ' + e.type, 'bad'));
+}
+function bindConn(c) {
+  NET.conn = c;
+  c.on('open', () => {
+    NET.ready = true; NET.rxT = 0;
+    if (NET.mode === 'host') { netStatus('Your friend is connected. Pick a ward to start.', 'good'); $('#btnOnlineGo').hidden = false; }
+    else netStatus('Connected. Waiting for the host to start the shift…', 'good');
+  });
+  c.on('data', onNetData);
+  c.on('close', () => netDropped());
+  c.on('error', () => netDropped());
+}
+function netDropped() {
+  if (NET.mode === 'off') return;
+  const wasPlaying = G.state === 'play' || G.state === 'countdown' || G.state === 'paused';
+  NET.ready = false; NET.conn = null;
+  if (NET.mode === 'guest') { netStop(); goMenu(); openOnline(); netStatus('The host closed the game or lost connection.', 'bad'); }
+  else if (wasPlaying) { netTag('FRIEND LEFT', 'bad'); banner('YOUR FRIEND LEFT<span class="sub">Finish the shift on your own</span>', 'code'); NET.mode = 'off'; G.online = false; }
+  else { netStatus('Your friend disconnected.', 'bad'); $('#btnOnlineGo').hidden = true; }
+}
+function netStop() {
+  try { if (NET.conn) NET.conn.close(); } catch (e) {}
+  try { if (NET.peer) NET.peer.destroy(); } catch (e) {}
+  Object.assign(NET, { mode: 'off', peer: null, conn: null, code: '', guestIn: null, snap: null, ready: false });
+  G.online = false; netTag('');
+}
+const netSend = (msg) => { try { if (NET.conn && NET.ready) NET.conn.send(msg); } catch (e) {} };
+
+/* ---------- messages ---------- */
+function onNetData(msg) {
+  NET.rxT = 0;
+  if (!msg || typeof msg !== 'object') return;
+  if (msg.t === 'i') { NET.guestIn = msg; return; }                         // host: guest's controls
+  if (msg.t === 'start') { startGuestShift(msg.lv); return; }               // guest: host started a shift
+  if (msg.t === 's') { NET.snap = msg; return; }                            // guest: world snapshot
+  if (msg.t === 'end') { guestShiftOver(msg); return; }
+  if (msg.t === 'bye') { netDropped(); return; }
+}
+function startGuestShift(lv) {
+  G.online = true; G.mode = 2; G.tutorial = false; G.chosen = 1;
+  G.level = clamp(lv | 0, 0, LEVELS.length - 1);
+  players.forEach(p => p.off = false);
+  loadLevel(G.level); resetLevel(); setHints();
+  ['#menu', '#end', '#pause', '#help', '#tutDone', '#choose', '#levels', '#howto', '#online'].forEach(s => $(s).hidden = true);
+  $('#hud').hidden = false; $('#hints').hidden = false; $('#coach').hidden = true;
+  G.state = 'play'; G.active = 1; G.intro = 2.4; musicShuffle();
+  netTag('ONLINE · DOCTOR KATE');
+  banner(`${LV.name.toUpperCase()}<span class="sub">You are Doctor Kate</span>`);
+}
+function guestShiftOver(msg) {
+  G.state = 'over'; G.overT = 0; G.stars = msg.stars || 0;
+  $('#endScore').textContent = msg.score; $('#endStars').innerHTML = [0, 1, 2].map(i => `<span class="${i < G.stars ? 'on' : ''}" style="animation-delay:${0.45 + i * 0.42}s">★</span>`).join('');
+  $('#endMeta').innerHTML = `${LV.name.toUpperCase()} · ONLINE<br>WITH YOUR FRIEND`;
+  $('#endStats').innerHTML = `<span>Patients treated</span><b>${msg.treated}</b><span>Transferred out</span><b>${msg.lost}</b>`;
+  $('#btnNext').hidden = true; $('#btnAgain').hidden = true;
+}
+
+/* ---------- snapshots ---------- */
+const itemSnap = (it) => it ? [it.type, it.count, r2(it.progress), r1(it.burn), it.contents] : 0;
+function itemApply(cur, d, owner) {
+  if (!d) { if (cur) discard(cur); return null; }
+  let it = cur;
+  if (!it || it.type !== d[0] || it.count !== d[1] || (it.contents || []).join() !== (d[4] || []).join()) {
+    if (it) discard(it);
+    it = new Item(d[0], d[1]); it.contents = (d[4] || []).slice(); it.rebuild();
+    if (owner) { owner.add(it.mesh); it.mesh.position.set(0, 0, 0); }
+  }
+  it.progress = d[2]; it.burn = d[3];
+  return it;
+}
+function buildSnap() {
+  const vis = hazards.find(h => h.npcs);
+  const s = {
+    t: 's', n: ++NET.seq, st: G.state, cd: r2(G.cd || 0), lf: r1(G.left), sc: G.score, tr: G.treated, ls: G.lost, el: r1(G.elapsed),
+    pl: players.map(p => [r2(p.pos.x), r2(p.pos.z), r2(p.angle), r1(p.ko), p.working ? 1 : 0, itemSnap(p.held), r2(p.slipT)]),
+    it: [], bd: [], vs: [], lv: [], ca: [], bl: [], wt: [],
+    rd: returnTile.dirty, sk: world.sinks.map(t => t.clean),
+    lg: [r2(LIGHT), EV.blackout > 0 ? 1 : 0, EV.sprinkle > 0 ? 1 : 0],
+    ev: NET.evq.splice(0, 24),
+  };
+  for (const row of tiles) for (const t of row) {
+    const i = t.y * 15 + t.x;
+    if (t.item) s.it.push([i, ...itemSnap(t.item)]);
+    if (t.blocked) s.bl.push(i);
+    if (t.wet > 0) s.wt.push(i);
+  }
+  beds.forEach((b, i) => { const p = b.patient; if (p) s.bd.push([i, p.uid, RECIPES.indexOf(p.recipe), r1(p.pat), r1(p.max), p.state, r2(p.t), p.look]); });
+  if (vis) vis.npcs.forEach(n => s.vs.push([n.uid, n.kind, r2(n.pos.x), r2(n.pos.z), r2(n.angle), (n.chair ? 1 : 0) | (n.fallT > 0 ? 2 : 0) | (n.leaving ? 4 : 0), n.look, r2(n.m.g.position.y)]));
+  leavers.forEach(n => s.lv.push([n.uid, r2(n.pos.x), r2(n.pos.z), r2(n.angle), n.look, r2(n.m.g.position.y)]));
+  CARTS.forEach((c, i) => { if (c.busy) s.ca.push([i, r2(c.x), r1(c.g.position.z), c.g.rotation.y > 1 ? 1 : 0]); });
+  return s;
+}
+const GUEST = { pats: new Map(), vis: new Map(), lvs: new Map(), rubble: new Map() };
+function guestClear() {
+  GUEST.vis.forEach(v => levelRoot.remove(v.m.g)); GUEST.vis.clear();
+  GUEST.lvs.forEach(v => levelRoot.remove(v.m.g)); GUEST.lvs.clear();
+  GUEST.rubble.forEach(g => levelRoot.remove(g)); GUEST.rubble.clear();
+  GUEST.pats.clear();
+}
+function applySnap(s) {
+  G.state = s.st === 'over' && G.state === 'over' ? 'over' : (s.st === 'paused' ? 'play' : s.st);
+  G.cd = s.cd; G.left = s.lf; G.score = s.sc; G.treated = s.tr; G.lost = s.ls; G.elapsed = s.el;
+  updateHUD(); updateTimer();
+  // doctors: the host's is followed exactly, ours is nudged towards the host's version
+  s.pl.forEach((d, i) => {
+    const p = players[i];
+    p.ko = d[3]; p.working = !!d[4]; p.slipT = d[6];
+    p.held = itemApply(p.held, d[5], p.anchor);
+    if (i === 0 || p.ko > 0) {
+      p.vel.set((d[0] - p.pos.x) * 8, 0, (d[1] - p.pos.z) * 8);
+      p.pos.set(d[0], 0, d[1]); p.angle = d[2];
+    } else {
+      const dx = d[0] - p.pos.x, dz = d[1] - p.pos.z, err = Math.hypot(dx, dz);
+      if (err > 1.2) p.pos.set(d[0], 0, d[1]); else { p.pos.x += dx * 0.25; p.pos.z += dz * 0.25; }
+    }
+  });
+  // items on counters
+  const seen = new Set();
+  s.it.forEach(d => {
+    const t = tiles[(d[0] / 15) | 0][d[0] % 15]; seen.add(t);
+    const it = itemApply(t.item, d.slice(1), null);
+    if (it !== t.item) { t.item = it; scene.add(it.mesh); it.mesh.position.set(t.x, t.top, t.y); it.mesh.rotation.set(0, 0, 0); }
+    else { it.progress = d[3]; it.burn = d[4]; }
+  });
+  for (const row of tiles) for (const t of row) if (t.item && !seen.has(t)) { discard(t.item); t.item = null; }
+  // patients
+  const live = new Set();
+  s.bd.forEach(d => {
+    const b = beds[d[0]]; live.add(d[1]);
+    if (!b.patient || b.patient.uid !== d[1]) {
+      if (b.patient) b.g.remove(b.patient.g);
+      const recipe = RECIPES[d[2]], g = makePatient(recipe, BLANKETS[b.idx % BLANKETS.length], d[7]);
+      g.position.set(0, 0.52, -0.72); b.g.add(g); b.legs.visible = true;
+      b.patient = { recipe, g, uid: d[1], look: d[7], pat: d[3], max: d[4], state: d[5], t: d[6] };
+    }
+    Object.assign(b.patient, { pat: d[3], max: d[4], state: d[5], t: d[6] });
+    animatePatient(b.patient, 1 / 60);
+  });
+  beds.forEach(b => { if (b.patient && !live.has(b.patient.uid)) { b.g.remove(b.patient.g); b.patient = null; b.legs.visible = false; } });
+  // visitors and discharged patients
+  syncCrowd(GUEST.vis, s.vs, (d) => makeVisitorModel(d[1], d[6]), (v, d) => { v.flags = d[5]; v.y = d[7]; });
+  syncCrowd(GUEST.lvs, s.lv, (d) => makeDoctor(d[4].gownHex, null, d[4].skinHex, { hair: d[4].hairHex, plain: true, pants: d[4].gownHex, long: d[4].style === 'long' }), (v, d) => { v.y = d[5]; v.wave = 1; });
+  // trolleys
+  const busy = new Set(s.ca.map(c => c[0]));
+  CARTS.forEach((c, i) => { c.g.visible = busy.has(i); c.busy = busy.has(i); });
+  s.ca.forEach(([i, x, z, flip]) => { const c = CARTS[i]; c.x = x; c.g.position.set(x, 0, z); c.g.rotation.y = flip ? PI : 0; c.nurse.body.position.y = Math.abs(Math.sin(G.t * 16)) * 0.06; swingLegs(c.nurse, G.t * 16, true, 1 / 60); });
+  // blocked tiles, puddles, trays, lights
+  const blocked = new Set(s.bl), wet = new Set(s.wt);
+  for (const row of tiles) for (const t of row) {
+    const i = t.y * 15 + t.x, isBlocked = blocked.has(i);
+    t.blocked = isBlocked;
+    if (t.slider) t.slider.target = isBlocked ? 1 : 0;
+    if (t.ch === ',') {
+      if (isBlocked && !GUEST.rubble.has(i)) { const g = makeRubbleMesh(t); g.position.y = 0; GUEST.rubble.set(i, g); }
+      else if (!isBlocked && GUEST.rubble.has(i)) { levelRoot.remove(GUEST.rubble.get(i)); GUEST.rubble.delete(i); }
+    }
+    if (wet.has(i)) { if (!t.wet) wetTile(t, 3); t.wet = 3; } else if (t.wet) { t.wet = 0; if (t.puddle) t.puddle.visible = false; }
+  }
+  returnTile.dirty = s.rd; updateReturnStack();
+  world.sinks.forEach((t, i) => { if (t.clean !== s.sk[i]) { t.clean = s.sk[i]; updateSinkRack(t); } });
+  LIGHT = s.lg[0]; EV.blackout = s.lg[1] ? 1 : 0; EV.sprinkle = s.lg[2] ? 1 : 0;
+  if (EV.sprinkle) for (let i = 0; i < 4; i++) emit(rand(0.7, 13.3), 2.9, rand(1.6, 6.8), { color: '#9fdcff', up: -2.5, g: 9, life: 0.45, size: 0.022, sp: 0.05, spread: 0.02, op: 0.8 });
+  (s.ev || []).forEach(playNetEvent);
+}
+function syncCrowd(map, list, make, extra) {
+  const live = new Set();
+  list.forEach(d => {
+    const id = d[0]; live.add(id);
+    let v = map.get(id);
+    if (!v) { const m = make(d); scene.remove(m.g); levelRoot.add(m.g); if (m.ring) m.ring.visible = false; v = { m, walkT: Math.random() * 6, px: d[2], pz: d[3] }; map.set(id, v); }
+    const moved = Math.hypot(d[2] - v.px, d[3] - v.pz) > 0.004;
+    v.walkT += moved ? 0.22 : 0; v.px = d[2]; v.pz = d[3];
+    extra(v, d);
+    const sitting = !!(v.flags & 1), fallen = !!(v.flags & 2);
+    v.m.g.position.set(d[2], v.y || 0, d[3]); v.m.g.rotation.y = d[4];
+    v.m.body.rotation.x = fallen ? -1.3 : 0;
+    v.m.body.position.y = moved ? Math.abs(Math.sin(v.walkT)) * 0.05 : 0;
+    v.m.arms.forEach((a, k) => a.rotation.x = v.wave && k === 1 ? -2.6 + Math.sin(G.t * 10) * 0.35 : sitting ? -1.1 : moved ? Math.sin(v.walkT + k * PI) * 0.5 : 0);
+    swingLegs(v.m, v.walkT, moved, 1 / 60, sitting);
+    blinkEyes(v.m, 1 / 60);
+  });
+  [...map.keys()].forEach(id => { if (!live.has(id)) { levelRoot.remove(map.get(id).m.g); map.delete(id); } });
+}
+/* ---------- one-off events (sounds, banners, floating text) ---------- */
+function netEvent(e) { if (NET.mode === 'host' && NET.ready) NET.evq.push(e); }
+function playNetEvent(e) {
+  if (e[0] === 's') { const f = sfxRaw[e[1]]; if (f) f(e[2]); }
+  else if (e[0] === 'b') bannerRaw(e[1], e[2]);
+  else if (e[0] === 'f') floatTextRaw(e[1], e[2], e[3], e[4], e[5]);
+  else if (e[0] === 'ba') babbleRaw(e[1], e[2]);
+}
+/* ---------- per-frame ---------- */
+function netHostTick(dt) {
+  if (NET.mode !== 'host' || !NET.ready) return;
+  NET.sendT -= dt;
+  if (NET.sendT <= 0) { NET.sendT = 1 / 20; netSend(buildSnap()); }
+  NET.rxT += dt;
+  netTag(NET.rxT > 2 ? 'ONLINE · NO SIGNAL' : 'ONLINE · DOCTOR TOM', NET.rxT > 2 ? 'warn' : '');
+}
+function netGuestTick(dt) {
+  if (NET.snap) { applySnap(NET.snap); NET.snap = null; }
+  const p = players[1];
+  p.intent = intentFor(1);
+  if (p.ko <= 0 && G.state === 'play') movePlayer(p, p.intent, dt);
+  // a tap between two sends must not be lost, so one-shot presses are held until they go out
+  if (p.intent.grab) NET.pendGrab = true;
+  if (p.intent.dash) NET.pendDash = true;
+  NET.sendT -= dt;
+  if (NET.sendT <= 0) {
+    NET.sendT = 1 / 30;
+    const it = p.intent;
+    netSend({ t: 'i', mx: r2(it.mx), mz: r2(it.mz), grab: !!NET.pendGrab, work: !!it.work, dash: !!NET.pendDash, sprint: !!it.sprint });
+    NET.pendGrab = false; NET.pendDash = false;
+  }
+  NET.rxT += dt;
+  netTag(NET.rxT > 2 ? 'ONLINE · RECONNECTING…' : 'ONLINE · DOCTOR KATE', NET.rxT > 2 ? 'warn' : '');
+}
+
 /* =============================== LOOP =============================== */
 const _w = new THREE.Vector3();
 function update(dt) {
@@ -3118,6 +3499,8 @@ function update(dt) {
       if (n >= 1 && n <= 3) { banner(`${n}<span class="sub">${LV.name}</span>`); sfx.count(); }
       else if (n <= 0) { banner(`GO!<span class="sub">${LV.hazard}</span>`); sfx.go(); G.state = 'play'; }
     }
+  } else if (G.state === 'play' && NET.mode === 'guest') {
+    netGuestTick(dt);
   } else if (G.state === 'play') {
     if (!G.tutorial) G.left -= dt;
     G.elapsed += dt;
@@ -3143,13 +3526,20 @@ function update(dt) {
     stationsUpdate(dt); patientsUpdate(dt); returnsUpdate(dt);
     if (G.tutorial) tutUpdate(dt);
     else if (G.left <= 0) { G.left = 0; endShift(); }
-    updateTimer();
+    updateTimer(); netHostTick(dt);
   } else if (G.state === 'over') {
     G.overT += dt; if (G.overT > 1.6 && $('#end').hidden && G.state === 'over') { $('#end').hidden = false; sfx.fanfare(G.stars); for (let i = 0; i < G.stars; i++) setTimeout(() => sfx.starPop(i), 450 + i * 420); }
   } else if (G.state === 'tutdone') {
     patientsUpdate(dt);
   }
-  if (G.state !== 'paused') { hazards.forEach(h => h.update(dt, G.state === 'play')); wetUpdate(dt); eventsUpdate(dt); lightingUpdate(dt); leaversUpdate(dt); ledUpdate(dt); }
+  if (NET.mode === 'guest') {
+    // the guest draws the ward the host describes: no hazards, patients or events of its own
+    for (const row of tiles) for (const t of row) if (t.slider) {
+      const sl = t.slider; sl.h += (sl.target - sl.h) * Math.min(1, dt * 9);
+      sl.panel.scale.y = Math.max(0.02, sl.h); sl.lampMat.color.set(t.blocked ? '#e23b3b' : '#3dbe6a');
+    }
+    lightingUpdate(dt); ledUpdate(dt);
+  } else if (G.state !== 'paused') { hazards.forEach(h => h.update(dt, G.state === 'play')); wetUpdate(dt); eventsUpdate(dt); lightingUpdate(dt); leaversUpdate(dt); ledUpdate(dt); }
   ambienceUpdate(dt);
   G.shake = Math.max(0, G.shake - dt);
   animate(dt);
@@ -3285,6 +3675,11 @@ function frame(now) {
 loadLevel(G.level);
 resetLevel();
 menuArt();
+// opened from an invite link: jump straight to joining
+{
+  const code = new URLSearchParams(location.search).get('join');
+  if (code) { openOnline(); openJoin(); $('#joinCode').value = code.toUpperCase().slice(0, 4); joinOnline(code); }
+}
 requestAnimationFrame(frame);
 setInterval(musicTick, 25);
 </script>
