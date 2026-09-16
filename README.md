@@ -9,7 +9,8 @@ A frantic co-op hospital game built with Three.js. Grab supplies, prep treatment
 - **Online** — host a game, share the room code, and play a ward together from different houses
 - **Orientation** — a step-by-step tutorial
 
-Five wards, each with its own hazard: Code Blue trolley convoys, wandering visitors and wet floors,
-a collapsing ceiling, airlock doors on a button, and a night shift lit by head torches.
+Seven wards, each with its own hazard: Code Blue trolley convoys, wandering visitors and wet floors,
+a collapsing ceiling, sealed airlocks, a night shift lit by head torches, a rooftop helipad with a
+landing air ambulance and gusting wind, and a two-floor ward joined by one creaky lift.
 
 Everything runs in the browser from a single HTML file: no build step, no install.

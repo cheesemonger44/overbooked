@@ -301,9 +301,9 @@
   <div class="clip" style="width:min(880px,100%)"><div class="sheet">
     <div class="sheet-head">
       <div class="logo">OVER<span>BOOKED!</span></div>
-      <div class="meta">NIGHT SHIFT ROTA<br>5 WARDS · 2 DOCTORS</div>
+      <div class="meta">NIGHT SHIFT ROTA<br>7 WARDS · 2 DOCTORS</div>
     </div>
-    <p class="lede">Grab supplies, prep treatments and race trays to the right bed before your patients give up. Five wards, two doctors, one very long night.</p>
+    <p class="lede">Grab supplies, prep treatments and race trays to the right bed before your patients give up. Seven wards, two doctors, one very long night.</p>
     <div class="modes">
       <button class="mode solo" data-mode="1" type="button">
         <span class="art"><img id="artSolo" alt=""></span>
@@ -566,6 +566,36 @@ const LEVELS = [
     decor: { sign: 7, cross: 10.9, clock: 3, windows: [1.4, 4.6, 12.6], posters: [[6.1, 2]] },
     theme: { wall: '#b9c6e4', back: '#c3cfeb', trim: '#6f7fc9', floorA: '#dfe5f2', floorB: '#cad3e6', bg: '#16203a' },
     stars: { 1: [70, 150, 230], 2: [110, 240, 370] } },
+  { id: 'helipad', name: 'Helipad', sign: 'HELIPAD', hazard: 'Air ambulance and gusts', recipes: ['fever', 'burn', 'flu'],
+    blurb: 'A field ward on the roof. The air ambulance blows everything about when it lands and drops off patients in a rush, and the wind never lets up.',
+    map: ['###############',
+          '#|B|B|WRC|B|B|#',
+          'D.............D',
+          '#.CPC.HHH.CFC.#',
+          '#.CMC.HHH.CAC.#',
+          '#.....HHH.....#',
+          '#.............#',
+          '#CrCbCXCvsiCCC#',
+          '###############'],
+    trays: [[1, 7], [3, 7], [11, 7], [12, 7]], starts: [[3, 2], [11, 2]], heli: true,
+    decor: { sign: 7, cross: 11.1, clock: 3, windows: [], posters: [] },
+    theme: { wall: '#9aa4ad', back: '#b3bcc4', trim: '#e2533b', floorA: '#c9ced2', floorB: '#b7bdc2', bg: '#86b9e8' },
+    stars: { 1: [70, 150, 230], 2: [115, 245, 375] } },
+  { id: 'upstairs', name: 'Upstairs, Downstairs', sign: 'LIFT LOBBY', hazard: 'One slow lift', recipes: ['knee', 'fever', 'flu'],
+    blurb: 'Beds upstairs, supplies downstairs, and one creaky lift in between. Send trays up on their own, and take the slow stairs when the lift breaks down.',
+    map: ['###############',
+          '#|B|B|B#CRCWCC#',
+          'D......Z......#',
+          '#.CC...#.CPCM.#',
+          '#......L......#',
+          '#.CX...#.CFCA.#',
+          '#......#......#',
+          '#CCCCCC#rbvsiC#',
+          '###############'],
+    trays: [[8, 1], [10, 1], [12, 1], [13, 1]], starts: [[3, 3], [11, 3]], upper: 1.2,
+    decor: { sign: 10.5, cross: 8.5, clock: 13.2, windows: [], posters: [] },
+    theme: { wall: '#e3d6c1', back: '#efe5d3', trim: '#4f8fbf', floorA: '#eef1f3', floorB: '#dde3e7', bg: '#cfdfe6' },
+    stars: { 1: [70, 150, 230], 2: [115, 245, 375] } },
 ];
 // Orientation teaches every treatment, so it keeps the original fully-equipped Ward 4B.
 const TUTORIAL_LEVEL = { ...LEVELS[0], id: 'orientation', recipes: null,
@@ -579,7 +609,7 @@ const TUTORIAL_LEVEL = { ...LEVELS[0], id: 'orientation', recipes: null,
         '#rfbvsiCMMCCCX#',
         '###############'],
   trays: [[10, 7], [11, 7], [12, 7], [6, 4]] };
-const CHAR_KIND = { '#': 'wall', D: 'wall', K: 'switch', '|': 'curtain', '.': 'floor', ',': 'floor', S: 'floor', T: 'floor', h: 'chairs', C: 'counter', B: 'bed', R: 'return', W: 'sink', X: 'bin', P: 'prep', M: 'pillc', F: 'centrifuge', A: 'autoclave', r: 'disp', f: 'disp', b: 'disp', v: 'disp', s: 'disp', i: 'disp' };
+const CHAR_KIND = { '#': 'wall', D: 'wall', K: 'switch', H: 'floor', L: 'lift', Z: 'stairs', '|': 'curtain', '.': 'floor', ',': 'floor', S: 'floor', T: 'floor', h: 'chairs', C: 'counter', B: 'bed', R: 'return', W: 'sink', X: 'bin', P: 'prep', M: 'pillc', F: 'centrifuge', A: 'autoclave', r: 'disp', f: 'disp', b: 'disp', v: 'disp', s: 'disp', i: 'disp' };
 const DISP_ITEM = { r: 'roll', f: 'fabric', b: 'bottle', v: 'vial', s: 'syringe', i: 'ice' };
 const DISP_COLOR = { r: '#f2c9a0', f: '#9db4cc', b: '#f0a45a', v: '#7fb0ff', s: '#e8e2c6', i: '#a9e4ff' };
 const SHIFT = 180;
@@ -638,6 +668,8 @@ const sfxRaw = {
   smokeBeep() { tone(3100, .13, 'square', .035); },
   sprinkler() { for (let i = 0; i < 6; i++) noise(1.2, .09, 2400, i * 1.0, 'bandpass'); },
   slip() { tone(950, .3, 'sine', .08, 280); },
+  rotor() { tone(62, .09, 'sawtooth', .05, 48); noise(.07, .05, 300, 0, 'lowpass'); },
+  ding() { tone(1175, .25, 'sine', .08); tone(880, .35, 'sine', .07, null, .12); },
   ko() { tone(620, .55, 'triangle', .1, 140); noise(.2, .15, 700, 0, 'lowpass'); for (let i = 0; i < 3; i++) tone(2200 + i * 300, .06, 'sine', .04, 2600, .6 + i * .12); },
   starPop(i) { tone(660 * Math.pow(1.26, i), .18, 'triangle', .14); tone(1320 * Math.pow(1.26, i), .12, 'sine', .06, null, .05); },
   chime() { tone(784, .5, 'sine', .07); tone(622, .7, 'sine', .07, null, .38); },
@@ -1045,6 +1077,14 @@ function buildFloor() {
   });
   const f = new THREE.Mesh(cg('floorPlane', () => new THREE.PlaneGeometry(15, 9)), noOutline(new THREE.MeshToonMaterial({ map: tex, gradientMap: TOON_RAMP })));
   f.rotation.x = -PI / 2; f.position.set(7, 0, 4); f.receiveShadow = true; levelRoot.add(f);
+  if (LV.upper) {
+    // a raised mezzanine over the left half: solid block, with the same floor tiles on top
+    add(levelRoot, box(6, LV.upper, 7.6), M.wall, 3.5, LV.upper / 2, 3.7);
+    const topGeo = new THREE.PlaneGeometry(6, 7.6), uv = topGeo.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 6 / 15, uv.getY(i) * 7.6 / 9);
+    const top = new THREE.Mesh(topGeo, noOutline(new THREE.MeshToonMaterial({ map: tex, gradientMap: TOON_RAMP })));
+    top.rotation.x = -PI / 2; top.position.set(3.5, LV.upper + 0.002, 3.7); top.receiveShadow = true; levelRoot.add(top);
+  }
   const yel = new THREE.MeshBasicMaterial({ color: '#f2b134' });
   CB.lanes = (LV.gurneyRows || []).map((row, i) => {
     for (const z of [row - 0.44, row + 0.44]) for (let xx = 0.7; xx < 13.5; xx += 0.6) {
@@ -1168,9 +1208,9 @@ function buildWalls() {
   add(levelRoot, box(15.4, 0.08, 0.44), M.skirting, 7, 1.05, -0.3);
   for (const x of [0, 14]) for (let y = 1; y <= 8; y++) {
     if ((LV.gurneyRows || []).includes(y) || LV.map[y][x] === 'D') continue;
-    const depth = y === 1 ? 1.6 : 1, z = y === 1 ? 0.7 : y;
-    add(levelRoot, box(1, 1.1, depth), M.wall, x, 0.55, z);
-    add(levelRoot, box(1.04, 0.1, depth + 0.02), M.wallTrim, x, 1.12, z);
+    const depth = y === 1 ? 1.6 : 1, z = y === 1 ? 0.7 : y, lift = x === 0 && y < 8 ? (LV.upper || 0) : 0;
+    add(levelRoot, box(1, 1.1 + lift, depth), M.wall, x, (1.1 + lift) / 2, z);
+    add(levelRoot, box(1.04, 0.1, depth + 0.02), M.wallTrim, x, 1.12 + lift, z);
   }
   add(levelRoot, box(13, 0.36, 1), M.wall, 7, 0.18, 8);
   add(levelRoot, box(13.02, 0.08, 1.02), M.wallTrim, 7, 0.38, 8);
@@ -1204,7 +1244,7 @@ function buildWalls() {
   world.clockH = hh; world.clockM = mh;
   // a monitor above every bed
   beds.forEach(b => {
-    const g = new THREE.Group(); g.position.set(b.x, 1.62, -0.07); levelRoot.add(g);
+    const g = new THREE.Group(); g.position.set(b.x, 1.62 + (b.tile.h ? 0.82 : 0), -0.07); levelRoot.add(g); if (b.tile.h) g.scale.setScalar(0.8);
     add(g, rbox(0.56, 0.38, 0.07, 0.03), M.dark, 0, 0, 0);
     add(g, box(0.48, 0.3, 0.02), M.screen, 0, 0, 0.03, false);
     const bl = add(g, sph(0.022, 8, 6), M.blip, -0.2, 0, 0.045, false);
@@ -1259,8 +1299,15 @@ function buildSlider(t) {
   t.slider = { panel, warn, lampMat, h: 0, target: 0 };
 }
 
+// How high the floor is at a point: the upper floor, the stairs' ramp, or wherever the lift platform has got to.
+function heightAt(x, z) {
+  const t = tileAt(Math.round(x), Math.round(z)); if (!t) return 0;
+  if (t.kind === 'stairs') return LV.upper * clamp(t.x + 0.5 - x, 0, 1);
+  if (t.kind === 'lift') return t.liftH || 0;
+  return t.h || 0;
+}
 function buildTile(t) {
-  const g = new THREE.Group(); g.position.set(t.x, 0, t.y); levelRoot.add(g); t.group = g;
+  const g = new THREE.Group(); g.position.set(t.x, t.h || 0, t.y); levelRoot.add(g); t.group = g;
   const backRow = t.y === 1, depth = backRow ? 1.55 : 1.0, dz = backRow ? -0.275 : 0;
   t.top = H; t.hl = H + 0.012;
   switch (t.kind) {
@@ -1364,11 +1411,41 @@ function buildTile(t) {
       if (t.ch === ',') { const m = new THREE.Mesh(cg('decal', () => new THREE.PlaneGeometry(0.96, 0.96)), crackMat); m.rotation.set(-PI / 2, 0, ((Math.random() * 4) | 0) * PI / 2); m.position.y = 0.003; g.add(m); }
       if (t.ch === 'S' || t.ch === 'T') buildSlider(t);
       break;
+    case 'lift': {
+      const frame = std('#8a97a8');
+      for (const [sx, sz] of [[-0.47, -0.47], [0.47, -0.47], [-0.47, 0.47], [0.47, 0.47]]) add(g, box(0.07, 2.5, 0.07), frame, sx, 1.25, sz);
+      add(g, box(1.02, 0.1, 1.02), frame, 0, 2.5, 0);
+      const plat = new THREE.Group(); g.add(plat);
+      add(plat, box(0.92, 0.1, 0.92), M.steel, 0, 0.05, 0);
+      const stripe = new THREE.Mesh(cg('decal', () => new THREE.PlaneGeometry(0.96, 0.96)), new THREE.MeshBasicMaterial({ map: stripeTex(), transparent: true, opacity: 0.45, depthWrite: false }));
+      stripe.rotation.x = -PI / 2; stripe.position.y = 0.103; stripe.scale.setScalar(0.9); plat.add(stripe);
+      for (const sz of [-0.44, 0.44]) add(plat, box(0.92, 0.5, 0.04), std('#f2b134'), 0, 0.35, sz); // side rails
+      const lamp = new THREE.MeshBasicMaterial({ color: '#3dbe6a' }); add(g, sph(0.08, 10, 8), lamp, 0, 2.62, 0, false);
+      const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.34), planeMat(memoTex('lift-ooo', () => textTex('OUT OF ORDER', { w: 320, h: 108, bg: '#e23b3b', fg: '#ffffff', size: 34, spacing: 2 }))));
+      sign.position.set(0, 2.18, 0.53); sign.visible = false; g.add(sign);
+      t.platform = plat; t.liftLamp = lamp; t.liftSign = sign; t.liftH = 0; t.name = 'Lift';
+      break;
+    }
+    case 'stairs': {
+      const mat = std('#b9c1c7');
+      for (let k = 0; k < 6; k++) { const hh = LV.upper * (k + 1) / 6; add(g, box(1 / 6, hh, 0.96), mat, 0.5 - (k + 0.5) / 6, hh / 2, 0); }
+      add(g, box(1.45, 0.05, 0.05), M.steel, 0, LV.upper / 2 + 0.6, 0.46).rotation.z = -Math.atan2(LV.upper, 1);
+      t.name = 'Stairs';
+      break;
+    }
     case 'wall':
-      if (t.ch === 'D' || ((LV.gurneyRows || []).includes(t.y) && (t.x === 0 || t.x === 14))) { buildDoor(t); doorTiles.push(t); }
-      else if (!isBorder(t.x, t.y)) { add(g, box(1, 1.1, 1), M.wall, 0, 0.55, 0); add(g, box(1.04, 0.1, 1.04), M.wallTrim, 0, 1.12, 0); }
+      if (t.ch === 'D' || ((LV.gurneyRows || []).includes(t.y) && (t.x === 0 || t.x === 14))) {
+        buildDoor(t); doorTiles.push(t);
+        if (t.h) add(g, box(1, t.h, 1), M.wall, 0, -t.h / 2, 0); // wall below a door on the upper floor
+      } else if (!isBorder(t.x, t.y)) {
+        // on the two-floor ward the divider is the mezzanine's edge: a retaining wall with a low balcony parapet
+        const tall = LV.upper ? LV.upper + 0.4 : 1.1;
+        add(g, box(1, tall, 1), M.wall, 0, tall / 2, 0); add(g, box(1.04, 0.1, 1.04), M.wallTrim, 0, tall + 0.02, 0);
+      }
       break;
   }
+  if (t.h) { t.top += t.h; t.hl += t.h; }
+  if (t.kind === 'lift') { t.top = 0.11; t.hl = 0.12; }
 }
 
 function buildBed(t) {
@@ -1406,9 +1483,10 @@ function loadLevel(i) {
     tiles.push([]);
     for (let x = 0; x < LV.map[y].length; x++) {
       const ch = LV.map[y][x], kind = CHAR_KIND[ch];
-      const t = { x, y, ch, kind, item: null, solid: kind !== 'floor', blocked: false, wet: 0,
-                  interactive: !['floor', 'wall', 'curtain', 'chairs'].includes(kind),
-                  surface: ['counter', 'prep', 'pillc', 'centrifuge', 'autoclave', 'sink'].includes(kind), bounce: 0 };
+      const t = { x, y, ch, kind, item: null, solid: !['floor', 'lift', 'stairs'].includes(kind), blocked: false, wet: 0,
+                  interactive: !['floor', 'wall', 'curtain', 'chairs', 'stairs'].includes(kind),
+                  surface: ['counter', 'prep', 'pillc', 'centrifuge', 'autoclave', 'sink', 'lift'].includes(kind), bounce: 0,
+                  h: LV.upper && x <= 6 && y >= 1 && y <= 7 ? LV.upper : 0 }; // the left side is the upper floor
       tiles[y].push(t);
       if (kind !== 'floor' || ch !== '.') buildTile(t);
     }
@@ -1419,6 +1497,9 @@ function loadLevel(i) {
   if (LV.visitors) hazards.push(visitorHazard(LV.visitors));
   if (LV.collapse) hazards.push(collapseHazard());
   if (LV.sliders) hazards.push(sliderHazard());
+  if (LV.upper) hazards.push(liftHazard());
+  if (LV.heli) hazards.push(heliHazard());
+  hazards = hazards.filter(Boolean);
 }
 
 /* =============================== ITEMS =============================== */
@@ -2300,7 +2381,7 @@ function leaversUpdate(dt) {
     }
     n.walkT += dt * (moving ? 8 : 0);
     const hopY = n.hop < 0.35 ? Math.sin(n.hop / 0.35 * PI) * 0.35 : 0; // jump down off the bed
-    n.m.g.position.set(n.pos.x, hopY, n.pos.z); n.m.g.rotation.y = n.angle;
+    n.m.g.position.set(n.pos.x, hopY + heightAt(n.pos.x, n.pos.z), n.pos.z); n.m.g.rotation.y = n.angle;
     n.m.body.position.y = moving ? Math.abs(Math.sin(n.walkT)) * 0.05 : 0;
     n.m.arms[0].rotation.x = moving ? Math.sin(n.walkT) * 0.5 : 0;
     n.m.arms[1].rotation.x = -2.6 + Math.sin(G.t * 10) * 0.35; n.m.arms[1].rotation.z = 0.3; // waving goodbye
@@ -2416,6 +2497,189 @@ function lightingUpdate(dt) {
   });
 }
 
+// Upstairs, Downstairs: the lift runs a steady up-and-down cycle and now and then breaks down at a floor.
+function liftHazard() {
+  const t = tiles.flat().find(x => x.kind === 'lift'); if (!t) return null;
+  const up = LV.upper, TRAVEL = 2.2, WAIT = 2.6;
+  let h = 0, phase = 'wait', timer = WAIT, target = 0, broken = 0, nextBreak = rand(28, 38), sparkT = 0;
+  function apply() {
+    t.liftH = h; t.platform.position.y = h;
+    t.top = h + 0.11; t.hl = h + 0.12;
+    if (t.item) t.item.mesh.position.y = t.top;
+    t.liftSign.visible = broken > 0;
+    t.liftLamp.color.set(broken > 0 ? (Math.sin(G.t * 10) > 0 ? '#e23b3b' : '#5a1a1a') : phase === 'move' ? '#f2b134' : '#3dbe6a');
+  }
+  function sparks(dt) { if ((sparkT -= dt) <= 0) { sparkT = rand(0.2, 0.6); emit(t.x + rand(-0.4, 0.4), 2.4, t.y + 0.4, { n: 4, color: ['#fff27a', '#7ad7ff'], up: 1.2, g: 7, life: 0.4, size: 0.025, sp: 1 }); } }
+  apply();
+  return {
+    lift: t,
+    reset() { h = 0; phase = 'wait'; timer = WAIT; target = 0; broken = 0; nextBreak = rand(28, 38); apply(); },
+    update(dt, playing) {
+      if (playing) {
+        nextBreak -= dt;
+        if (broken > 0) {
+          broken -= dt; sparks(dt);
+          if (broken <= 0) { broken = 0; timer = 0.8; floatText(t.x, 2.9, t.y, 'Lift fixed', 'good'); sfx.powerUp(); }
+        } else if (phase === 'wait') {
+          timer -= dt;
+          if (timer <= 0) {
+            if (nextBreak <= 0 && G.left > 12) {
+              broken = 9; nextBreak = rand(30, 42);
+              banner('LIFT OUT OF ORDER<span class="sub">Take the stairs</span>', 'code'); sfx.powerDown();
+            } else { phase = 'move'; target = h < up / 2 ? up : 0; sfx.ding(); }
+          }
+        } else {
+          const dir = Math.sign(target - h); h += dir * (up / TRAVEL) * dt;
+          if ((dir > 0 && h >= target) || (dir <= 0 && h <= target)) { h = target; phase = 'wait'; timer = WAIT; sfx.ding(); }
+        }
+      }
+      apply();
+    },
+    netState() { return [r2(h), broken > 0 ? 1 : 0, phase === 'move' ? 1 : 0]; },
+    applyNet(a) { h = a[0]; broken = a[1] ? 1 : 0; phase = a[2] ? 'move' : 'wait'; },
+    guestTick(dt) { if (broken > 0) sparks(dt); apply(); },
+  };
+}
+
+// Helipad: an air ambulance lands every half minute or so, and gusts of wind shove everyone sideways.
+function makeHelicopter() {
+  const g = new THREE.Group(), s = new THREE.Group(); s.scale.setScalar(0.85); g.add(s);
+  const white = std('#f4f6f7'), red = std('#d8343f'), glass = std('#8fd3ff', { transparent: true, opacity: 0.85 });
+  add(s, rbox(2.0, 0.95, 1.15, 0.3), white, 0, 0.78, 0);
+  add(s, box(2.02, 0.18, 1.17), red, 0, 0.62, 0);
+  add(s, sph(0.52, 18, 12), glass, 0.78, 0.92, 0).scale.set(1, 0.85, 0.95);
+  add(s, box(1.8, 0.24, 0.24), red, -1.75, 0.98, 0);
+  add(s, box(0.34, 0.7, 0.08), white, -2.55, 1.28, 0);
+  for (const z of [-0.48, 0.48]) {
+    add(s, cyl(0.04, 0.04, 2.1, 8), M.dark, 0.1, 0.07, z).rotation.z = PI / 2;
+    for (const x of [-0.5, 0.6]) add(s, cyl(0.03, 0.03, 0.34, 6), M.dark, x, 0.24, z * 0.9);
+  }
+  for (const z of [0.586, -0.586]) { add(s, box(0.36, 0.1, 0.01), red, 0, 0.92, z, false); add(s, box(0.1, 0.36, 0.01), red, 0, 0.92, z, false); }
+  add(s, cyl(0.06, 0.06, 0.35, 8), M.dark, 0, 1.4, 0);
+  const rotor = new THREE.Group(); rotor.position.y = 1.58; s.add(rotor);
+  add(rotor, box(4.2, 0.04, 0.18), M.dark, 0, 0, 0); add(rotor, box(0.18, 0.04, 4.2), M.dark, 0, 0, 0);
+  const tail = new THREE.Group(); tail.position.set(-2.55, 1.3, 0.08); s.add(tail);
+  add(tail, box(0.05, 0.7, 0.05), M.dark, 0, 0, 0);
+  return { g, rotor, tail };
+}
+function heliHazard() {
+  const pad = tiles.flat().filter(t => t.ch === 'H'); if (!pad.length) return null;
+  const cx = pad.reduce((a, t) => a + t.x, 0) / pad.length, cz = pad.reduce((a, t) => a + t.y, 0) / pad.length;
+  const PHASES = ['idle', 'approach', 'landing', 'landed', 'takeoff'];
+  // painted pad, edge lights, windsocks
+  const padTex = memoTex('helipad', () => {
+    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+    x.fillStyle = '#5b646b'; x.fillRect(0, 0, 256, 256);
+    x.strokeStyle = '#f2b134'; x.lineWidth = 14; x.beginPath(); x.arc(128, 128, 104, 0, PI * 2); x.stroke();
+    x.fillStyle = '#ffffff'; x.fillRect(78, 62, 26, 132); x.fillRect(152, 62, 26, 132); x.fillRect(78, 115, 100, 26);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  });
+  const decal = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 2.9), planeMat(padTex)); decal.rotation.x = -PI / 2; decal.position.set(cx, 0.004, cz); levelRoot.add(decal);
+  const lightMat = new THREE.MeshBasicMaterial({ color: '#f2b134' });
+  for (let k = 0; k < 8; k++) { const a = k * PI / 4; add(levelRoot, sph(0.06, 8, 6), lightMat, cx + Math.cos(a) * 1.45, 0.05, cz + Math.sin(a) * 1.45, false); }
+  const socks = [0, 14].map(x => {
+    const g = new THREE.Group(); g.position.set(x, 1.15, 6); levelRoot.add(g);
+    add(g, cyl(0.025, 0.025, 1, 6), M.steel, 0, 0.5, 0);
+    const sock = new THREE.Group(); sock.position.y = 0.95; g.add(sock);
+    const cone = add(sock, cg('sock', () => new THREE.ConeGeometry(0.13, 0.55, 12, 1, true)), std('#ff7a2f', { side: THREE.DoubleSide }), 0.3, 0, 0); cone.rotation.z = PI / 2;
+    return sock;
+  });
+  const shadow = new THREE.Mesh(cg('shadowDisc', () => new THREE.CircleGeometry(0.5, 24)), new THREE.MeshBasicMaterial({ color: '#10151a', transparent: true, opacity: 0, depthWrite: false }));
+  shadow.rotation.x = -PI / 2; shadow.position.set(cx, 0.01, cz); levelRoot.add(shadow);
+  const heli = makeHelicopter(); heli.g.visible = false; heli.g.position.set(cx, 9, cz); heli.g.rotation.y = 0.25; levelRoot.add(heli.g);
+
+  let phase = 'idle', t = 0, next = 16, rotorT = 0;
+  let gust = 0, gustWarn = 0, gustDir = 1, nextGust = 9;
+  const ease = (k) => k * k * (3 - 2 * k);
+  function wash(k, dt) { // rotor downdraft pushes everyone off the pad
+    for (const p of onDuty()) {
+      const dx = p.pos.x - cx, dz = p.pos.z - cz, d = Math.hypot(dx, dz) || 0.01;
+      if (d > 3.6 || p.ko > 0) continue;
+      const push = (1 - d / 3.6) * 3.6 * k * dt; p.pos.x += dx / d * push; p.pos.z += dz / d * push; collide(p);
+    }
+    if (Math.random() < dt * 18 * k) { const a = rand(0, PI * 2); emit(cx + Math.cos(a) * 1.6, 0.15, cz + Math.sin(a) * 1.6, { color: '#d6d9dc', up: 0.3, vx: Math.cos(a) * 3, vz: Math.sin(a) * 3, life: 0.6, size: 0.07, grow: 2.5, op: 0.45 }); }
+  }
+  function touchdown() {
+    pad.forEach(tt => { tt.blocked = true; evict(tt, true); });
+    G.shake = 0.18; sfx.bonk();
+    for (let k = 0; k < 24; k++) { const a = k * PI / 12; emit(cx + Math.cos(a) * 1.3, 0.2, cz + Math.sin(a) * 1.3, { color: '#d6d9dc', up: 0.4, vx: Math.cos(a) * 4, vz: Math.sin(a) * 4, life: 0.8, size: 0.08, grow: 2.5, op: 0.5 }); }
+    // loose items on the nearest counters get blown onto counters further away
+    const near = tiles.flat().filter(c => c.kind === 'counter' && c.item && Math.hypot(c.x - cx, c.y - cz) < 3.4);
+    const far = tiles.flat().filter(c => c.kind === 'counter' && !c.item && Math.hypot(c.x - cx, c.y - cz) >= 3.4);
+    let blown = 0;
+    near.forEach(c => {
+      if (!far.length || Math.random() > 0.6) return;
+      const dest = far.splice((Math.random() * far.length) | 0, 1)[0], it = c.item;
+      c.item = null; placeOn(dest, it); blown++;
+      emit(c.x, H + 0.3, c.y, { n: 8, color: '#ffffff', up: 1, life: 0.5, size: 0.05, sp: 1.2 });
+    });
+    if (blown) floatText(cx, 2.4, cz, 'Blown away!', 'bad');
+    // a burst of patients arrives with the helicopter
+    const free = beds.filter(b => !b.patient);
+    let arrived = 0;
+    for (let k = 0; k < 2 && free.length && G.left > 10; k++) { spawnPatient(free.splice((Math.random() * free.length) | 0, 1)[0]); arrived++; }
+    if (arrived) floatText(cx, 2.9, cz - 1, arrived > 1 ? `${arrived} patients incoming!` : 'Patient incoming!', 'good');
+  }
+  function visuals(dt) {
+    const flying = heli.g.visible;
+    heli.rotor.rotation.y += dt * (flying ? (phase === 'landed' ? 14 : 26) : 0);
+    heli.tail.rotation.x += dt * (flying ? 30 : 0);
+    const flash = (phase === 'approach' || phase === 'landing') && Math.sin(G.t * 12) > 0;
+    lightMat.color.set(flash ? '#ffe28a' : '#8a6a1f');
+    const y = heli.g.position.y;
+    shadow.scale.setScalar(flying ? clamp(3.2 - y * 0.25, 0.8, 3.2) : 0.01); shadow.material.opacity = flying ? clamp(0.5 - y * 0.04, 0.1, 0.45) : 0;
+    const blowing = gust > 0 ? 1 : gustWarn > 0 ? 0.5 : 0;
+    socks.forEach(sk => { sk.rotation.y += ((gustDir > 0 ? 0 : PI) - sk.rotation.y) * Math.min(1, dt * 5); sk.rotation.z += ((blowing ? 0 : -1.2) - sk.rotation.z) * Math.min(1, dt * 4); });
+    if (gust > 0 && Math.random() < dt * 30) emit(gustDir > 0 ? 0.6 : 13.4, rand(0.3, 1.6), rand(1.8, 6.6), { color: '#ffffff', up: 0, vx: gustDir * 9, vz: 0, life: 1.4, size: 0.035, grow: 1, op: 0.55 });
+  }
+  function reset() {
+    phase = 'idle'; t = 0; next = 16; heli.g.visible = false; heli.g.position.y = 9;
+    pad.forEach(tt => tt.blocked = false); gust = 0; gustWarn = 0; nextGust = 9;
+  }
+  reset();
+  return {
+    heli: true,
+    reset,
+    update(dt, playing) {
+      visuals(dt);
+      if (!playing) return;
+      if (heli.g.visible && (rotorT -= dt) <= 0) { sfx.rotor(); rotorT = 0.13; }
+      if (phase === 'idle') {
+        next -= dt;
+        if (next <= 0 && G.left > 16) { phase = 'approach'; t = 0; heli.g.visible = true; heli.g.position.y = 9; banner('AIR AMBULANCE INBOUND<span class="sub">Clear the helipad</span>', 'code'); sfx.siren(); }
+      } else if (phase === 'approach') {
+        t += dt; heli.g.position.y = 9 - ease(Math.min(1, t / 3.2)) * 5;
+        if (t >= 3.2) { phase = 'landing'; t = 0; }
+      } else if (phase === 'landing') {
+        t += dt; const k = Math.min(1, t / 1.6); heli.g.position.y = 4 * (1 - ease(k)); wash(0.6 * k, dt);
+        if (t >= 1.6) { phase = 'landed'; t = 0; heli.g.position.y = 0; touchdown(); }
+      } else if (phase === 'landed') {
+        t += dt; wash(1, dt);
+        if (t >= 5) { phase = 'takeoff'; t = 0; pad.forEach(tt => tt.blocked = false); sfx.whoosh(); }
+      } else if (phase === 'takeoff') {
+        t += dt; const k = Math.min(1, t / 2); heli.g.position.y = 7 * ease(k); wash(1 - k, dt);
+        if (t >= 2) { phase = 'idle'; next = rand(24, 32); heli.g.visible = false; }
+      }
+      // wind
+      if (gust > 0) {
+        gust -= dt;
+        for (const p of onDuty()) { if (p.ko > 0) continue; p.pos.x += gustDir * 1.7 * dt; collide(p); }
+      } else if (gustWarn > 0) {
+        gustWarn -= dt; if (gustWarn <= 0) { gust = 2.6; sfx.whoosh(); }
+      } else if ((nextGust -= dt) <= 0 && G.left > 6) {
+        gustDir = Math.random() < 0.5 ? -1 : 1; gustWarn = 1.3; nextGust = rand(11, 16);
+        floatText(7, 2.7, 3.5, gustDir > 0 ? 'Gust incoming →' : '← Gust incoming', 'bad');
+      }
+    },
+    netState() { return [heli.g.visible ? 1 : 0, r2(heli.g.position.y), PHASES.indexOf(phase), gust > 0 ? gustDir : 0, gustWarn > 0 ? gustDir : 0]; },
+    applyNet(a) {
+      heli.g.visible = !!a[0]; heli.g.position.y = a[1]; phase = PHASES[a[2]] || 'idle';
+      gust = a[3] ? 1 : 0; gustWarn = a[4] ? 1 : 0; if (a[3] || a[4]) gustDir = a[3] || a[4];
+    },
+    guestTick(dt) { visuals(dt); if (heli.g.visible && (rotorT -= dt) <= 0) { sfxRaw.rotor(); rotorT = 0.13; } },
+  };
+}
+
 /* =============================== CAMERA =============================== */
 let W = 1, HH = 1;
 const camBase = new THREE.Vector3(), CAM_TARGET = new THREE.Vector3(7, 0, 3.2);
@@ -2529,7 +2793,7 @@ function emit(x, y, z, o = {}) {
   for (let i = 0; i < n; i++) {
     const p = PARTS[pIdx++ % PARTS.length], sp = o.spread ?? 0.1, v = o.sp ?? 0.4;
     p.m.visible = true; p.m.position.set(x + rand(-sp, sp), y, z + rand(-sp, sp));
-    p.vx = rand(-v, v); p.vz = rand(-v, v); p.vy = (o.up ?? 0.8) * rand(0.6, 1.3); p.g = o.g || 0;
+    p.vx = o.vx ?? rand(-v, v); p.vz = o.vz ?? rand(-v, v); p.vy = (o.up ?? 0.8) * rand(0.6, 1.3); p.g = o.g || 0;
     p.life = p.max = (o.life || 1) * rand(0.7, 1.2); p.s0 = o.size || 0.07; p.grow = o.grow ?? 1;
     const c = Array.isArray(o.color) ? o.color[(Math.random() * o.color.length) | 0] : (o.color || '#ffffff');
     p.m.material.color.set(c); p.op = o.op ?? 0.9; p.m.material.opacity = p.op;
@@ -2571,6 +2835,7 @@ function findTarget(p) {
   let best = null, bestS = -1e9;
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     const t = tileAt(cx + dx, cz + dy); if (!t || !t.interactive) continue;
+    if (LV.upper && Math.abs((t.kind === 'lift' ? t.liftH : (t.h || 0)) - heightAt(px, pz)) > 0.45) continue; // out of reach on another floor
     const vx = t.x - px, vz = t.y - pz, dist = Math.hypot(vx, vz) || 1e-3;
     const dot = (vx * fx + vz * fz) / dist;
     const qx = clamp(px, t.x - 0.5, t.x + 0.5), qz = clamp(pz, t.y - 0.5, t.y + 0.5);
@@ -2594,7 +2859,7 @@ function addToTray(tray, type, at) {
   tray.contents.push(type); tray.rebuild(); tray.pop = 0.2; sfx.place(); tutEvent('tray:' + type); return true;
 }
 function canPlace(t, it) {
-  if (t.kind === 'counter') return true;
+  if (t.kind === 'counter' || t.kind === 'lift') return true;
   if (t.kind === 'sink') return it.type === 'dirty';
   const st = STATIONS[t.kind]; return !!(st && st.map[it.type]);
 }
@@ -2684,7 +2949,8 @@ function movePlayer(p, it, dt) {
   const wet = !!(under && under.wet > 0);
   // holding the dash key keeps you sprinting, which also lets you barge past visitors
   p.sprinting = it.sprint && (it.mx || it.mz);
-  const spd = (wet ? 4.8 : 4.3) * (p.sprinting ? 1.35 : 1), grip = wet ? 1.8 : 16;
+  const stairs = under && under.kind === 'stairs';
+  const spd = (wet ? 4.8 : 4.3) * (p.sprinting ? 1.35 : 1) * (stairs ? 0.4 : 1), grip = wet ? 1.8 : 16;
   if (wet && Math.hypot(p.vel.x, p.vel.z) > 1.5 && Math.random() < dt * 8) emit(p.pos.x, 0.05, p.pos.z, { color: '#bfe8ff', up: 0.8, g: 4, life: 0.4, size: 0.035, sp: 0.8 });
   p.dashCD -= dt;
   if (p.slipT > 0) {
@@ -2711,8 +2977,14 @@ function collide(p) {
   for (let iter = 0; iter < 3; iter++) {
     const cx = Math.round(p.pos.x), cz = Math.round(p.pos.z);
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      const t = tileAt(cx + dx, cz + dy); if (!t || !(t.solid || t.blocked)) continue;
+      const t = tileAt(cx + dx, cz + dy); if (!t) continue;
       const qx = clamp(p.pos.x, t.x - 0.5, t.x + 0.5), qz = clamp(p.pos.z, t.y - 0.5, t.y + 0.5);
+      let wall = t.solid || t.blocked;
+      if (!wall && LV.upper) { // can't step up or down onto a different floor level, except via the stairs' ramp
+        const th = t.kind === 'stairs' ? LV.upper * clamp(t.x + 0.5 - qx, 0, 1) : t.kind === 'lift' ? t.liftH : (t.h || 0);
+        wall = Math.abs(th - heightAt(p.pos.x, p.pos.z)) > 0.45; // a little give, or you'd stick on the top and bottom step
+      }
+      if (!wall) continue;
       const ddx = p.pos.x - qx, ddz = p.pos.z - qz, d2 = ddx * ddx + ddz * ddz;
       if (d2 < R * R) {
         if (d2 > 1e-9) { const d = Math.sqrt(d2), push = (R - d) / d; p.pos.x += ddx * push; p.pos.z += ddz * push; }
@@ -2771,7 +3043,8 @@ function spawnPatient(bed, recipe = pickRecipe()) {
   bed.legs.visible = true; sfx.arrive();
 }
 function patientsUpdate(dt) {
-  const maxP = Math.min(beds.length, 2 + Math.floor(G.elapsed / (G.mode === 1 ? 42 : 30)));
+  // on the Helipad most patients arrive by air, so walk-ins are kept quieter
+  const maxP = LV.heli ? Math.min(beds.length - 1, 1 + Math.floor(G.elapsed / 55)) : Math.min(beds.length, 2 + Math.floor(G.elapsed / (G.mode === 1 ? 42 : 30)));
   G.spawnCD -= dt;
   const occupied = beds.filter(b => b.patient).length;
   beds.forEach(b => { if (!b.patient) b.emptyTimer -= dt; });
@@ -2873,6 +3146,8 @@ function buildHelp() {
       ${has('autoclave') ? st('Autoclave', ['syringe'], ['sterile'], 'Automatic, collect it before it melts') : ''}
       ${shelf('ice') ? `<div class="row"><span><b>Freezer</b><br><span class="unl">Ready to use</span></span><span class="ics">${iconHTML('ice')}</span></div>` : ''}
       <div class="row"><span><b>Sink</b><br><span class="unl">Drop in a stack of dirty trays, hold E to wash them one at a time</span></span><span class="ics">🍽️</span></div>
+      ${has('lift') ? '<div class="row"><span><b>Lift</b><br><span class="unl">Ride it between floors, or put a tray on it to send it up. When it breaks down, take the slow stairs.</span></span><span class="ics">🛗</span></div>' : ''}
+      ${LV.heli ? '<div class="row"><span><b>Helipad</b><br><span class="unl">Clear the pad when the air ambulance comes in. Its downdraft blows items off nearby counters, and it brings patients in bursts.</span></span><span class="ics">🚁</span></div>' : ''}
       ${has('switch') ? '<div class="row"><span><b>Airlock Button</b><br><span class="unl">Press Space to open both airlocks for a few seconds. They shut by themselves, and knock out anyone in the doorway.</span></span><span class="ics">🔴</span></div>' : ''}
     </div></div>
     <div><h3>Patients</h3><div class="rx">${levelRecipes().map(x => recipeRow(x.r, LV.recipes ? x.unlock : 0)).join('')}</div></div>
@@ -2924,7 +3199,7 @@ function goMenu() {
 /* ---------- shift rota: pick a ward ---------- */
 function drawMinimap(cv, lv) {
   const x = cv.getContext('2d'), s = cv.width / 15;
-  const col = { '#': '#1B2B2E', D: '#f2b134', K: '#e23b3b', '|': '#9ccbb9', '.': lv.theme.floorA, ',': lv.theme.floorB, S: '#f2b134', T: '#f2b134', h: '#4f7fb3',
+  const col = { '#': '#1B2B2E', D: '#f2b134', K: '#e23b3b', H: '#e9dcae', L: '#f2b134', Z: '#8a97a8', '|': '#9ccbb9', '.': lv.theme.floorA, ',': lv.theme.floorB, S: '#f2b134', T: '#f2b134', h: '#4f7fb3',
     C: '#2a9d93', B: '#f3a5b5', R: '#34454b', W: '#7fc8ff', X: '#d8343f', P: '#5bbf8a', M: '#e9a23b', F: '#4aa3ff', A: '#ff7a2f', ...DISP_COLOR };
   x.fillStyle = '#1B2B2E'; x.fillRect(0, 0, cv.width, cv.height);
   lv.map.forEach((row, y) => [...row].forEach((ch, i) => {
@@ -3448,6 +3723,7 @@ function buildSnap() {
   }
   beds.forEach((b, i) => { const p = b.patient; if (p) s.bd.push([i, p.uid, RECIPES.indexOf(p.recipe), r1(p.pat), r1(p.max), p.state, r2(p.t), p.look]); });
   s.vs = crowdSnap();
+  const netHaz = hazards.find(h => h.netState); s.hz = netHaz ? netHaz.netState() : 0;
   s.sh = collapseShadows();
   leavers.forEach(n => s.lv.push([n.uid, r2(n.pos.x), r2(n.pos.z), r2(n.angle), n.look, r2(n.m.g.position.y)]));
   CARTS.forEach((c, i) => { if (c.busy) s.ca.push([i, r2(c.x), r1(c.g.position.z), c.g.rotation.y > 1 ? 1 : 0]); });
@@ -3531,7 +3807,7 @@ function applySnap(s) {
     const i = t.y * 15 + t.x, isBlocked = blocked.has(i);
     t.blocked = isBlocked;
     if (t.slider) t.slider.target = isBlocked ? 1 : 0;
-    if (t.kind === 'floor' && !t.slider) {
+    if (LV.collapse && t.kind === 'floor') {
       if (isBlocked && !GUEST.rubble.has(i)) { const g = makeRubbleMesh(t); g.position.y = 0; GUEST.rubble.set(i, g); }
       else if (!isBlocked && GUEST.rubble.has(i)) { levelRoot.remove(GUEST.rubble.get(i)); GUEST.rubble.delete(i); }
     }
@@ -3542,6 +3818,7 @@ function applySnap(s) {
   LIGHT = s.lg[0]; EV.blackout = s.lg[1] ? 1 : 0; EV.sprinkle = s.lg[2] ? 1 : 0;
   if (EV.sprinkle) for (let i = 0; i < 4; i++) emit(rand(0.7, 13.3), 2.9, rand(1.6, 6.8), { color: '#9fdcff', up: -2.5, g: 9, life: 0.45, size: 0.022, sp: 0.05, spread: 0.02, op: 0.8 });
   applyShadows(s.sh || []);
+  if (s.hz) { const h = hazards.find(x => x.applyNet); if (h) h.applyNet(s.hz); }
   (s.ev || []).forEach(playNetEvent);
 }
 function syncCrowd(map, list, make, extra) {
@@ -3651,6 +3928,7 @@ function update(dt) {
       const sl = t.slider; sl.h += (sl.target - sl.h) * Math.min(1, dt * 9);
       sl.panel.scale.y = Math.max(0.02, sl.h); sl.lampMat.color.set(t.blocked ? '#e23b3b' : '#3dbe6a');
     }
+    hazards.forEach(h => h.guestTick && h.guestTick(dt));
     lightingUpdate(dt); ledUpdate(dt);
   } else if (G.state !== 'paused') { hazards.forEach(h => h.update(dt, G.state === 'play')); wetUpdate(dt); eventsUpdate(dt); lightingUpdate(dt); leaversUpdate(dt); ledUpdate(dt); }
   ambienceUpdate(dt);
@@ -3670,7 +3948,7 @@ function animate(dt) {
     if (p.off) { p.frame.visible = false; return; }
     // knocked out: tip over backwards, then get back up in the last moment
     const koK = p.ko > 0 ? Math.min(1, (KO_TIME - p.ko) * 5, p.ko * 3) : 0;
-    p.g.position.copy(p.pos); p.g.position.y = 0.2 * koK; p.g.rotation.set(-1.45 * koK, p.angle, 0, 'YXZ');
+    p.g.position.copy(p.pos); p.g.position.y = heightAt(p.pos.x, p.pos.z) + 0.2 * koK; p.g.rotation.set(-1.45 * koK, p.angle, 0, 'YXZ');
     p.ring.visible = !koK;
     const sp = Math.hypot(p.vel.x, p.vel.z);
     p.walkT += dt * (sp > 0.3 ? sp * 3.2 : 0);
@@ -3736,7 +4014,7 @@ function drawOverlays() {
       const tri = frac > 0.55 ? 'var(--green)' : frac > 0.25 ? 'var(--amber)' : 'var(--red)';
       const cls = p.state === 'happy' ? 'happy' : p.state === 'sad' ? 'sad' : frac < 0.25 ? 'urgent' : '';
       const body = p.state === 'happy' ? `<div class="needs">💚</div>` : p.state === 'sad' ? `<div class="needs">💔</div>` : `<div class="needs">${p.recipe.items.map(iconHTML).join('')}</div>`;
-      ov('bed' + i, b.x, 1.8, 0.45,`<div class="tag ${cls}"><div class="strip" style="background:${tri}"></div><div class="dx">${RECIPE_ICON[p.recipe.id]} ${p.recipe.name}</div>${body}<div class="bar"><i style="width:${Math.round(frac * 100)}%;background:${tri}"></i></div></div>`);
+      ov('bed' + i, b.x, 1.8 + (b.tile.h || 0), 0.45,`<div class="tag ${cls}"><div class="strip" style="background:${tri}"></div><div class="dx">${RECIPE_ICON[p.recipe.id]} ${p.recipe.name}</div>${body}<div class="bar"><i style="width:${Math.round(frac * 100)}%;background:${tri}"></i></div></div>`);
     });
     // items on tiles, progress, warnings
     for (const row of tiles) for (const t of row) {
@@ -3752,8 +4030,8 @@ function drawOverlays() {
     onDuty().forEach(p => {
       const i = p.i;
       if (p.held) { p.held.mesh.getWorldPosition(_w); const bd = itemBadge(p.held); if (bd) ov('hp' + i, _w.x, _w.y + 0.42, _w.z, bd); }
-      ov('pt' + i, p.pos.x, 1.62, p.pos.z, `<div class="ptag" style="background:${p.def.css}">${p.def.name.toUpperCase()}</div>`);
-      if (p.ko > 0) ov('ko' + i, p.pos.x, 1.05, p.pos.z, `<div class="ko"><span class="spin">💫</span>${Math.ceil(p.ko)}</div>`);
+      ov('pt' + i, p.pos.x, 1.62 + heightAt(p.pos.x, p.pos.z), p.pos.z, `<div class="ptag" style="background:${p.def.css}">${p.def.name.toUpperCase()}</div>`);
+      if (p.ko > 0) ov('ko' + i, p.pos.x, 1.05 + heightAt(p.pos.x, p.pos.z), p.pos.z, `<div class="ko"><span class="spin">💫</span>${Math.ceil(p.ko)}</div>`);
       if (p.target && G.state === 'play' && p.target.name && p.target.kind !== 'counter')
         ov('tn' + i, p.target.x, p.target.hl, p.target.y + 0.5, `<div class="tname">${p.target.name}</div>`);
     });
