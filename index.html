@@ -804,8 +804,34 @@ const TRACKS = [
       [[0, 78, 2], [2, 81, 2], [4, 83, 4], [8, 81, 2], [10, 78, 2], [12, 75, 4]],
       [[0, 76, 2], [2, 80, 2], [4, 83, 2], [6, 86, 2], [8, 88, 4], [12, 83, 4]],
     ] },
+  // The Helipad's own theme: a siren-like two-note hook over rotor chops and a syncopated bass.
+  { name: 'Heli-cop Bop', level: 'helipad', tempo: 1.06, swing: 0, lead: 'pluck', leadB: 'square', style: 'bop', rotor: true,
+    prog: [CH.Am, CH.F, CH.C, CH.G, CH.Am, CH.F, CH.C, CH.G],
+    melody: [
+      [[0, 76, 2], [2, 81, 2], [4, 76, 2], [6, 81, 2], [8, 79, 4], [12, 76, 4]],
+      [[0, 77, 2], [2, 81, 2], [4, 77, 2], [6, 81, 2], [8, 84, 4], [12, 81, 4]],
+      [[0, 79, 2], [2, 84, 2], [4, 79, 2], [6, 84, 2], [8, 83, 2], [10, 81, 2], [12, 79, 4]],
+      [[0, 74, 3], [3, 76, 1], [4, 79, 4], [8, 83, 3], [11, 81, 1], [12, 79, 4]],
+      [[0, 81, 1], [1, 81, 1], [2, 84, 2], [4, 81, 2], [6, 79, 2], [8, 76, 2], [10, 79, 2], [12, 81, 4]],
+      [[0, 77, 1], [1, 77, 1], [2, 81, 2], [4, 84, 2], [6, 81, 2], [8, 77, 4], [12, 72, 4]],
+      [[0, 76, 2], [2, 79, 2], [4, 84, 2], [6, 79, 2], [8, 88, 4], [12, 84, 4]],
+      [[0, 83, 2], [2, 81, 2], [4, 79, 2], [6, 74, 2], [8, 79, 2], [10, 83, 2], [12, 86, 4]],
+    ],
+    bass: [[0, 0, .3], [3, 0, .18], [6, 7, .2], [8, 0, .26], [11, 12, .18], [14, 7, .2]], stabs: [[4], [12], [10, 2]],
+    progB: [CH.Dm, CH.Em, CH.F, CH.G, CH.Dm, CH.Em, CH.F, CH.E7],
+    melodyB: [
+      [[0, 74, 4], [4, 77, 2], [6, 81, 4], [10, 77, 2], [12, 74, 4]],
+      [[0, 76, 4], [4, 79, 2], [6, 83, 4], [10, 79, 2], [12, 76, 4]],
+      [[0, 77, 2], [2, 81, 2], [4, 84, 4], [8, 81, 2], [10, 77, 2], [12, 72, 4]],
+      [[0, 79, 2], [2, 83, 2], [4, 86, 4], [8, 83, 2], [10, 79, 2], [12, 74, 4]],
+      [[0, 81, 6], [6, 77, 2], [8, 74, 4], [12, 77, 4]],
+      [[0, 83, 6], [6, 79, 2], [8, 76, 4], [12, 79, 4]],
+      [[0, 84, 4], [4, 81, 4], [8, 77, 4], [12, 81, 4]],
+      [[0, 80, 2], [2, 83, 2], [4, 86, 2], [6, 83, 2], [8, 80, 4], [12, 76, 4]],
+    ] },
 ];
 const DRUMS = {
+  bop:    { kick: [0, 3, 8, 11], snare: [4, 12], hatEvery: 1, open: 14, fill: true },
   polka:  { kick: [0, 8], snare: [4, 12], hatEvery: 2, open: 14, fill: true },
   funk:   { kick: [0, 7, 10], snare: [4, 12], ghost: [9, 15], hatEvery: 1, open: 14, fill: true },
   swing:  { kick: [0, 8], snare: [], brush: [4, 12], ride: [0, 4, 6, 8, 12, 14], fill: false },
@@ -815,7 +841,7 @@ const DRUMS = {
 const FORM = [{ p: 'A' }, { p: 'A', dbl: true }, { p: 'B' }, { p: 'A', key: 2, dbl: true }, { p: 'B', key: 2, brk: true }, { p: 'A', key: 2, dbl: true }];
 const MUSIC = { on: true, step: 0, sec: 0, next: 0, bus: null, track: 0, bag: [] };
 try { MUSIC.on = localStorage.getItem('overbooked-music') !== 'off'; } catch (e) {}
-MUSIC.track = (Math.random() * TRACKS.length) | 0;
+MUSIC.track = (Math.random() * TRACKS.filter(t => !t.level).length) | 0;
 function musicBus() {
   if (!MUSIC.bus) { MUSIC.bus = actx.createGain(); MUSIC.bus.gain.value = 0.6; MUSIC.bus.connect(master); }
   return MUSIC.bus;
@@ -869,6 +895,7 @@ const inst = {
   brush(t, v = 0.07) { mnoise(t, 0.18, v, 2500, 'bandpass'); },
   hat(t, v = 0.04, open = false) { mnoise(t, open ? 0.12 : 0.03, v, 7500); },
   ride(t, v = 0.035) { mnoise(t, 0.2, v, 9000); mvoice(5200, t, 0.12, 'sine', v * 0.12); },
+  chop(t, v = 0.05) { mnoise(t, 0.05, v, 240, 'bandpass'); mvoice(72, t, 0.06, 'sine', v * 1.2); }, // a rotor blade going round
 };
 // -1 silent · 0 lounge (menus) · 1 orientation · 2 shift · 3 final 30 seconds
 function musicLevel() {
@@ -894,6 +921,7 @@ function scheduleStep(s, t, lvl) {
     inst[lead](note, t, n[2], lvl === 0 ? 0.12 : 0.15);
     if (sec.dbl && lvl > 0) inst[lead](note + 12, t, n[2], 0.05); // second pass: doubled an octave up
   }
+  if (tk.rotor && lvl >= 1 && !sec.brk) inst.chop(t, st % 2 ? 0.018 : 0.05); // thwup-thwup under everything
   if (sec.brk && lvl >= 1) { if (st === 0) inst.kick(t, 0.25); if (dr.fill && bar === 7 && st >= 8) inst.snare(t, 0.05 + (st - 8) * 0.018); if (st % 4 === 0) inst.hat(t, 0.025); return; }
   if (lvl >= 1 && dr.kick.includes(st)) inst.kick(t, lvl === 1 ? 0.3 : tk.style === 'swing' ? 0.32 : 0.48);
   if (lvl >= 2) {
@@ -907,10 +935,21 @@ function scheduleStep(s, t, lvl) {
   if (lvl === 3 && !dr.ride && dr.hatEvery === 2 && st % 2 === 1) inst.hat(t, 0.018);
 }
 // shuffle: play each tune through its whole song form, then move to a different one at random
-function musicNext() {
-  MUSIC.bag = MUSIC.bag.filter(i => i !== MUSIC.track);
-  if (!MUSIC.bag.length) MUSIC.bag = TRACKS.map((_, i) => i).filter(i => i !== MUSIC.track).sort(() => Math.random() - 0.5);
-  MUSIC.track = MUSIC.bag.shift(); MUSIC.step = 0; MUSIC.sec = 0;
+// A ward with its own theme plays it for the whole shift; everywhere else the general tracks shuffle.
+function wardTheme() {
+  if (!LV || G.tutorial || !['play', 'countdown', 'paused', 'over'].includes(G.state)) return -1;
+  return TRACKS.findIndex(t => t.level === LV.id);
+}
+function musicNext(skip = false) {
+  const theme = wardTheme();
+  if (theme >= 0 && !skip) { MUSIC.track = theme; }
+  else {
+    const general = TRACKS.map((_, i) => i).filter(i => !TRACKS[i].level);
+    MUSIC.bag = MUSIC.bag.filter(i => i !== MUSIC.track && general.includes(i));
+    if (!MUSIC.bag.length) MUSIC.bag = general.filter(i => i !== MUSIC.track).sort(() => Math.random() - 0.5);
+    MUSIC.track = MUSIC.bag.shift();
+  }
+  MUSIC.step = 0; MUSIC.sec = 0;
   if (musicLevel() >= 0) nowPlaying();
 }
 function musicShuffle() { musicNext(); }
@@ -3175,7 +3214,6 @@ function startGame(mode, tutorial = false) {
   buildHelp();
   resetLevel(); setHints();
   G.active = mode === 1 ? G.chosen : 0;
-  musicShuffle();
   ['#menu', '#end', '#pause', '#help', '#tutDone', '#choose', '#levels', '#howto', '#online'].forEach(s => $(s).hidden = true);
   $('#hud').hidden = false; $('#hints').hidden = tutorial; $('#coach').hidden = !tutorial;
   if (tutorial) {
@@ -3183,6 +3221,7 @@ function startGame(mode, tutorial = false) {
     CB.next = 1e9; G.state = 'play'; updateTimer(); renderCoach();
     banner('ORIENTATION<span class="sub">One bed · no clock</span>'); sfx.go();
   } else { G.state = 'countdown'; G.cd = 3.4; G.lastCd = 4; G.intro = 2.4; }
+  musicShuffle();
   if (NET.mode === 'host' && NET.ready) { G.online = true; netSend({ t: 'start', lv: G.level }); netTag('ONLINE · DOCTOR TOM'); }
   if (document.activeElement) document.activeElement.blur();
 }
@@ -3192,6 +3231,7 @@ function goMenu() {
   if (NET.mode !== 'off') { netSend({ t: 'bye' }); netStop(); guestClear(); }
   ['#end', '#hud', '#hints', '#pause', '#coach', '#tutDone', '#help', '#choose', '#levels', '#howto', '#online'].forEach(s => $(s).hidden = true);
   G.state = 'menu'; G.tutorial = false; players.forEach(p => p.off = false);
+  if (TRACKS[MUSIC.track] && TRACKS[MUSIC.track].level) musicNext();
   if (LV.idx !== G.level) loadLevel(G.level);
   resetLevel(); $('#menu').hidden = false; buildCharts(); menuArt();
 }
@@ -3493,7 +3533,7 @@ function syncAudioUI() {
 }
 function onUIKey(e) {
   initAudio();
-  if (e.code === 'KeyN') { if (e.shiftKey && MUSIC.on) musicNext(); else toggleMusic(); return; }
+  if (e.code === 'KeyN') { if (e.shiftKey && MUSIC.on) musicNext(true); else toggleMusic(); return; }
   if (G.state === 'menu') { if (e.code === 'Digit1') openChooser(false); if (e.code === 'Digit2') openLevels(2); if (e.code === 'KeyT' || e.code === 'Digit0') openChooser(true); if (e.code === 'KeyH') openHowto(); if (e.code === 'KeyO') openOnline(); return; }
   if (G.state === 'howto') { if (['Escape', 'Enter', 'KeyH', 'Space'].includes(e.code)) closeHowto(); return; }
   if (G.state === 'online') { if (e.code === 'Escape') closeOnline(); if (e.code === 'Enter' && !$('#btnOnlineGo').hidden) openLevels(2); return; }
