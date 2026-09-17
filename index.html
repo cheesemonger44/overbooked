@@ -579,17 +579,17 @@ const LEVELS = [
           '###############'],
     trays: [[1, 7], [3, 7], [11, 7], [12, 7]], starts: [[3, 2], [11, 2]], heli: true,
     decor: { sign: 7, cross: 11.1, clock: 3, windows: [], posters: [] },
-    theme: { wall: '#9aa4ad', back: '#b3bcc4', trim: '#e2533b', floorA: '#c9ced2', floorB: '#b7bdc2', bg: '#86b9e8' },
+    theme: { wall: '#9aa4ad', back: '#b3bcc4', trim: '#e2533b', floorA: '#c9ced2', floorB: '#b7bdc2', bg: '#9db4cf', fog: '#9db4cf' },
     stars: { 1: [70, 150, 230], 2: [115, 245, 375] } },
-  { id: 'upstairs', name: 'Upstairs, Downstairs', sign: 'LIFT LOBBY', hazard: 'One slow lift', recipes: ['knee', 'fever', 'flu'],
-    blurb: 'Beds upstairs, supplies downstairs, and one creaky lift in between. Send trays up on their own, and take the slow stairs when the lift breaks down.',
+  { id: 'upstairs', name: 'Upstairs, Downstairs', sign: 'LIFT LOBBY', hazard: 'Two creaky lifts', recipes: ['knee', 'fever', 'flu'],
+    blurb: 'Beds upstairs, supplies downstairs, and two creaky lifts in between. Send trays up on their own, and use the other lift when one breaks down.',
     map: ['###############',
           '#|B|B|B#CRCWCC#',
-          'D......Z......#',
+          'D......L......#',
           '#.CC...#.CPCM.#',
-          '#......L......#',
-          '#.CX...#.CFCA.#',
           '#......#......#',
+          '#.CX...#.CFCA.#',
+          '#......L......#',
           '#CCCCCC#rbvsiC#',
           '###############'],
     trays: [[8, 1], [10, 1], [12, 1], [13, 1]], starts: [[3, 3], [11, 3]], upper: 1.2,
@@ -981,7 +981,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 $('#stage').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#b9dcd9');
-const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 260);
 const outline = new OutlineEffect(renderer, { defaultThickness: 0.006, defaultColor: [0.1, 0.15, 0.16], defaultAlpha: 1, defaultKeepAlive: true });
 // Flat, unlit things (signs, particles, markers) look wrong with an outline, so skip anything using a basic material.
 function markOutlines(root) { root.traverse(o => { const m = o.material; if (m && m.isMeshBasicMaterial && !m.userData.outlineParameters) noOutline(m); }); }
@@ -1103,6 +1103,7 @@ function applyTheme(th) {
   M.wall.color.set(th.wall); M.wallBack.color.set(th.back); M.wallTrim.color.set(th.trim);
   M.skirting.color.set(th.trim); M.doorFrame.color.set(th.trim);
   scene.background.set(th.bg);
+  scene.fog = th.fog ? new THREE.Fog(th.fog, 60, 230) : null;
 }
 
 function buildFloor() {
@@ -1238,6 +1239,133 @@ function plantAt(x, y, z) {
   const leaf = std('#4f9d69');
   for (let i = 0; i < 6; i++) { const a = i * PI / 3; const l = add(g, sph(0.09, 10, 8), leaf, Math.cos(a) * 0.1, 0.36, Math.sin(a) * 0.1); l.scale.set(0.7, 1.8, 0.7); l.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5); }
   add(g, sph(0.1, 10, 8), std('#5fb57a'), 0, 0.42, 0).scale.set(1, 1.5, 1);
+}
+
+/* ---------- the view from the roof (Helipad): a town far below ---------- */
+function buildCityBelow() {
+  const G0 = -62, city = new THREE.Group(); levelRoot.add(city);
+  const lam = c => noOutline(new THREE.MeshLambertMaterial({ color: c }));
+  const glow = (c, o = 1) => noOutline(new THREE.MeshBasicMaterial({ color: c, transparent: o < 1, opacity: o, depthWrite: o >= 1, blending: o < 1 ? THREE.AdditiveBlending : THREE.NormalBlending }));
+  const put = (geo, mat, x, y, z, parent = city) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
+  const ROADS = [{ ax: 'x', c: 26 }, { ax: 'x', c: -18 }, { ax: 'z', c: -14 }, { ax: 'z', c: 28 }], RW = 7;
+  const LOTS = [[-38, -12, -20, 20], [33, -12, 52, 20]];
+  const BLDG = [[-54, -44, 18, 16, 22], [-60, 2, 14, 20, 12], [-86, -20, 16, 16, 28], [52, -46, 20, 14, 26], [66, 4, 14, 18, 14], [90, -30, 18, 16, 20], [-50, 48, 20, 14, 16], [56, 50, 18, 16, 11], [7, -44, 24, 12, 18], [7, 50, 22, 14, 12], [-90, 60, 16, 16, 18], [96, 60, 16, 14, 24]];
+  const inRect = (x, z, [x0, z0, x1, z1], m = 0) => x > x0 - m && x < x1 + m && z > z0 - m && z < z1 + m;
+  const onRoad = (x, z, m) => ROADS.some(r => Math.abs((r.ax === 'x' ? z : x) - r.c) < RW / 2 + m);
+  const inBldg = (x, z, m) => BLDG.some(([bx, bz, w, d]) => Math.abs(x - bx) < w / 2 + m && Math.abs(z - bz) < d / 2 + m) || (x > -4 && x < 18 && z > -6 && z < 14);
+  // ground: one painted canvas with grass, roads, pavements and car parks
+  const SPAN = 360, OX = 7 - SPAN / 2, OZ = 4 - SPAN / 2, PX = 1536 / SPAN;
+  const tex = memoTex('city-ground', () => {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 1536; const g = cv.getContext('2d');
+    const R = (x0, z0, x1, z1, col) => { g.fillStyle = col; g.fillRect((x0 - OX) * PX, (z0 - OZ) * PX, (x1 - x0) * PX, (z1 - z0) * PX); };
+    g.fillStyle = '#6a9a55'; g.fillRect(0, 0, 1536, 1536);
+    for (let i = 0; i < 2600; i++) { g.fillStyle = Math.random() < .5 ? 'rgba(40,80,40,.18)' : 'rgba(150,190,110,.16)'; g.fillRect(Math.random() * 1536, Math.random() * 1536, 5, 5); }
+    for (const r of ROADS) r.ax === 'x' ? R(OX, r.c - RW / 2 - 1.4, OX + SPAN, r.c + RW / 2 + 1.4, '#c9c3b6') : R(r.c - RW / 2 - 1.4, OZ, r.c + RW / 2 + 1.4, OZ + SPAN, '#c9c3b6');
+    R(-8, -10, 22, 18, '#cfc9bb'); // hospital forecourt
+    for (const [x0, z0, x1, z1] of LOTS) {
+      R(x0, z0, x1, z1, '#55585d'); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2;
+      for (let x = x0 + 1; x < x1 - 2; x += 2.8) for (const zr of [z0 + 1, z0 + 12, z1 - 6]) { g.beginPath(); g.moveTo((x - OX) * PX, (zr - OZ) * PX); g.lineTo((x - OX) * PX, (zr + 5 - OZ) * PX); g.stroke(); }
+    }
+    for (const r of ROADS) r.ax === 'x' ? R(OX, r.c - RW / 2, OX + SPAN, r.c + RW / 2, '#4a4d53') : R(r.c - RW / 2, OZ, r.c + RW / 2, OZ + SPAN, '#4a4d53');
+    g.fillStyle = 'rgba(245,240,220,.85)';
+    for (const r of ROADS) for (let s = -SPAN / 2; s < SPAN / 2; s += 4) {
+      const px = r.ax === 'x' ? (s + 7 - OX) * PX : (r.c - 0.12 - OX) * PX, pz = r.ax === 'x' ? (r.c - 0.12 - OZ) * PX : (s + 4 - OZ) * PX;
+      if (!ROADS.some(o => o.ax !== r.ax && Math.abs(s + (r.ax === 'x' ? 7 : 4) - o.c) < RW / 2 + 1)) g.fillRect(px, pz, r.ax === 'x' ? 2 * PX : 0.25 * PX, r.ax === 'x' ? 0.25 * PX : 2 * PX);
+    }
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+  });
+  const ground = put(new THREE.PlaneGeometry(SPAN, SPAN), noOutline(new THREE.MeshLambertMaterial({ map: tex })), 7, G0, 4);
+  ground.rotation.x = -PI / 2;
+  // lit-window facades
+  const facade = (seed, warm) => memoTex('facade-' + seed, () => {
+    const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; const g = cv.getContext('2d');
+    g.fillStyle = seed % 2 ? '#d8d2c6' : '#b9c2c9'; g.fillRect(0, 0, 128, 128);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) { g.fillStyle = Math.random() < warm ? (Math.random() < .5 ? '#ffe39a' : '#fff4c8') : '#4f6272'; g.fillRect(6 + c * 31, 8 + r * 31, 20, 16); }
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  });
+  const block = (x, z, w, d, h, seed, warm = .45, plant = true) => {
+    const tx = facade(seed, warm).clone(); tx.needsUpdate = true; tx.repeat.set(Math.max(1, Math.round(w / 5)), Math.max(1, Math.round(h / 4)));
+    put(new THREE.BoxGeometry(w, h, d), noOutline(new THREE.MeshLambertMaterial({ map: tx })), x, G0 + h / 2, z);
+    if (plant) put(new THREE.BoxGeometry(w + .4, .5, d + .4), lam('#8d949b'), x, G0 + h + .25, z);
+    if (plant) for (let i = 0; i < 2; i++) put(new THREE.BoxGeometry(2, 1.2, 1.6), lam('#aab1b8'), x + rand(-w / 3, w / 3), G0 + h + 1.1, z + rand(-d / 3, d / 3));
+  };
+  // the hospital itself, dropping away beneath the roof, with an A&E canopy out front
+  block(7, 4, 16, 10, -G0 - 0.05, 7, .7, false);
+  put(new THREE.BoxGeometry(9, .5, 4), lam('#e2533b'), 7, G0 + 4, 11);
+  BLDG.forEach(([x, z, w, d, h], i) => block(x, z, w, d, h, i, .35 + (i % 3) * .15));
+  // trees
+  const trees = [];
+  for (let n = 0; trees.length < 520 && n < 12000; n++) {
+    const x = rand(-160, 174), z = rand(-164, 172);
+    if (onRoad(x, z, 1.8) || inBldg(x, z, 2) || LOTS.some(l => inRect(x, z, l, 1.5)) || trees.some(t => Math.hypot(t[0] - x, t[1] - z) < 3.2)) continue;
+    trees.push([x, z, rand(.8, 1.3)]);
+  }
+  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(.25, .35, 2, 6), lam('#7a5234'), trees.length);
+  const crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.9, 0), lam('#ffffff'), trees.length);
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), col = new THREE.Color(), GREENS = ['#3f7d3a', '#4f9444', '#2f6b39', '#6aa24c'];
+  trees.forEach(([x, z, s], i) => {
+    trunk.setMatrixAt(i, mtx.compose(new THREE.Vector3(x, G0 + s, z), q, sc.set(s, s, s)));
+    crown.setMatrixAt(i, mtx.compose(new THREE.Vector3(x, G0 + 3.3 * s, z), q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), i), sc.set(s, s * 1.15, s)));
+    crown.setColorAt(i, col.set(GREENS[i % 4])); q.identity();
+  });
+  city.add(trunk, crown);
+  // street lights with warm pools on the pavement
+  const lamps = [];
+  for (const r of ROADS) for (let s = -162; s < 176; s += 12) {
+    const a = r.ax === 'x' ? s : r.c + (s % 24 ? 1 : -1) * (RW / 2 + .8), b = r.ax === 'x' ? r.c + (s % 24 ? 1 : -1) * (RW / 2 + .8) : s;
+    if (!ROADS.some(o => o !== r && Math.abs((o.ax === 'x' ? b : a) - o.c) < RW)) lamps.push([a, b]);
+  }
+  const pole = new THREE.InstancedMesh(new THREE.CylinderGeometry(.12, .15, 5, 5), lam('#50565e'), lamps.length);
+  const head = new THREE.InstancedMesh(new THREE.SphereGeometry(.45, 8, 6), glow('#fff1b8'), lamps.length);
+  const pool = new THREE.InstancedMesh(new THREE.CircleGeometry(3, 18).rotateX(-PI / 2), glow('#ffcf6b', .12), lamps.length);
+  lamps.forEach(([x, z], i) => {
+    pole.setMatrixAt(i, mtx.makeTranslation(x, G0 + 2.5, z));
+    head.setMatrixAt(i, mtx.makeTranslation(x, G0 + 5.1, z));
+    pool.setMatrixAt(i, mtx.makeTranslation(x, G0 + .05, z));
+  });
+  city.add(pole, head, pool);
+  // cars: parked ones in the bays, and traffic with headlights
+  const CARCOL = ['#d8453b', '#3b78d8', '#f2f2ee', '#2d2f36', '#e8b93a', '#58b06a', '#8a93a0', '#c95fa8'];
+  const carGeo = new THREE.BoxGeometry(3.6, .8, 1.7), cabGeo = new THREE.BoxGeometry(1.9, .6, 1.5), lampGeo = new THREE.BoxGeometry(.1, .22, .4);
+  const cabMat = lam('#26313b'), headMat = glow('#fffbe0'), tailMat = glow('#ff3b30'), beamMat = glow('#fff2b0', .16);
+  const beamGeo = new THREE.PlaneGeometry(5, 2.4).rotateX(-PI / 2);
+  const bodyMats = CARCOL.map(lam);
+  function car(color, lit, kind) {
+    const g = new THREE.Group();
+    put(carGeo, kind === 'amb' ? lam('#f4f4ef') : bodyMats[color], 0, .6, 0, g);
+    put(kind === 'amb' ? new THREE.BoxGeometry(2.4, 1.1, 1.65) : cabGeo, kind === 'amb' ? lam('#f4f4ef') : cabMat, kind === 'amb' ? -.5 : -.2, kind === 'amb' ? 1.5 : 1.3, 0, g);
+    if (kind === 'amb') { put(new THREE.BoxGeometry(3.62, .25, 1.72), lam('#2e9e4f'), 0, .75, 0, g); }
+    if (lit) {
+      for (const s of [-.55, .55]) { put(lampGeo, headMat, 1.81, .7, s, g); put(lampGeo, tailMat, -1.81, .7, s, g); }
+      put(beamGeo, beamMat, 4.3, .08, 0, g);
+    }
+    city.add(g); return g;
+  }
+  for (const [x0, z0, x1, z1] of LOTS) for (let x = x0 + 2.4; x < x1 - 2; x += 2.8) for (const zr of [z0 + 3.5, z0 + 14.5, z1 - 3.5]) {
+    if (Math.random() < .3) continue;
+    const c = car(Math.floor(Math.random() * CARCOL.length), false); c.position.set(x, G0, zr); c.rotation.y = PI / 2 + (Math.random() < .5 ? 0 : PI);
+  }
+  const blues = [];
+  for (const [i, z] of [[0, -8], [1, -4.6]]) {
+    const a = car(0, false, 'amb'); a.position.set(36 + i * .3, G0, z); a.rotation.y = 0;
+    for (const s of [-.5, .5]) blues.push(put(new THREE.BoxGeometry(.3, .25, .3), glow('#3a8bff'), .1, 2.15, s, a).material);
+  }
+  const traffic = [];
+  for (const r of ROADS) for (let k = 0; k < 10; k++) {
+    const dir = k % 2 ? 1 : -1, g = car(Math.floor(Math.random() * CARCOL.length), true);
+    traffic.push({ g, r, dir, s: rand(-170, 178), v: rand(6, 10) });
+  }
+  world.city = dt => {
+    for (const c of traffic) {
+      c.s += c.v * c.dir * dt; if (c.s > 178) c.s -= 348; else if (c.s < -170) c.s += 348;
+      const lane = c.r.c + c.dir * 1.75;
+      if (c.r.ax === 'x') { c.g.position.set(c.s, G0, lane); c.g.rotation.y = c.dir > 0 ? 0 : PI; }
+      else { c.g.position.set(lane, G0, c.s); c.g.rotation.y = c.dir > 0 ? -PI / 2 : PI / 2; }
+    }
+    const on = Math.sin(G.t * 12) > 0;
+    blues.forEach((m, i) => m.color.set((i % 2 === 0) === on ? '#6aaeff' : '#0b2a66'));
+  };
+  world.city(0);
 }
 
 function buildWalls() {
@@ -1514,7 +1642,7 @@ function loadLevel(i) {
   players.forEach(p => { if (p.held) { discard(p.held); p.held = null; } });
   levelRoot.clear();
   tiles.length = 0; beds.length = 0; autoTiles.length = 0; doorTiles.length = 0;
-  world.monitors.length = 0; world.sinks.length = 0; world.wet.length = 0; returnTile = null; world.led = null; leavers.length = 0; world.dim.length = 0; world.emLamps.length = 0;
+  world.monitors.length = 0; world.sinks.length = 0; world.wet.length = 0; returnTile = null; world.led = null; leavers.length = 0; world.dim.length = 0; world.emLamps.length = 0; world.city = null;
   LV = i < 0 ? { ...TUTORIAL_LEVEL, idx: -1 } : { ...LEVELS[i], idx: i };
   applyTheme(LV.theme);
   lightingForLevel();
@@ -1532,11 +1660,12 @@ function loadLevel(i) {
   }
   buildFloor();
   buildWalls();
+  if (LV.heli) buildCityBelow();
   hazards = []; airlockPress = null;
   if (LV.visitors) hazards.push(visitorHazard(LV.visitors));
   if (LV.collapse) hazards.push(collapseHazard());
   if (LV.sliders) hazards.push(sliderHazard());
-  if (LV.upper) hazards.push(liftHazard());
+  if (LV.upper) tiles.flat().filter(t => t.kind === 'lift').forEach((t, i) => hazards.push(liftHazard(t, i)));
   if (LV.heli) hazards.push(heliHazard());
   hazards = hazards.filter(Boolean);
 }
@@ -2536,11 +2665,12 @@ function lightingUpdate(dt) {
   });
 }
 
-// Upstairs, Downstairs: the lift runs a steady up-and-down cycle and now and then breaks down at a floor.
-function liftHazard() {
-  const t = tiles.flat().find(x => x.kind === 'lift'); if (!t) return null;
+// Upstairs, Downstairs: two lifts run steady up-and-down cycles, out of step, and now and then one breaks down at a floor.
+function liftHazard(t, idx) {
   const up = LV.upper, TRAVEL = 2.2, WAIT = 2.6;
-  let h = 0, phase = 'wait', timer = WAIT, target = 0, broken = 0, nextBreak = rand(28, 38), sparkT = 0;
+  const start = () => idx % 2 ? up : 0, firstBreak = () => idx % 2 ? rand(48, 60) : rand(26, 36);
+  let h = start(), phase = 'wait', timer = WAIT, target = h, broken = 0, nextBreak = firstBreak(), sparkT = 0;
+  const otherBroken = () => hazards.some(o => o.lift && o.lift !== t && o.broken());
   function apply() {
     t.liftH = h; t.platform.position.y = h;
     t.top = h + 0.11; t.hl = h + 0.12;
@@ -2552,7 +2682,8 @@ function liftHazard() {
   apply();
   return {
     lift: t,
-    reset() { h = 0; phase = 'wait'; timer = WAIT; target = 0; broken = 0; nextBreak = rand(28, 38); apply(); },
+    broken: () => broken > 0,
+    reset() { h = start(); phase = 'wait'; timer = WAIT; target = h; broken = 0; nextBreak = firstBreak(); apply(); },
     update(dt, playing) {
       if (playing) {
         nextBreak -= dt;
@@ -2562,9 +2693,9 @@ function liftHazard() {
         } else if (phase === 'wait') {
           timer -= dt;
           if (timer <= 0) {
-            if (nextBreak <= 0 && G.left > 12) {
+            if (nextBreak <= 0 && G.left > 12 && !otherBroken()) {
               broken = 9; nextBreak = rand(30, 42);
-              banner('LIFT OUT OF ORDER<span class="sub">Take the stairs</span>', 'code'); sfx.powerDown();
+              banner('LIFT OUT OF ORDER<span class="sub">Use the other lift</span>', 'code'); sfx.powerDown();
             } else { phase = 'move'; target = h < up / 2 ? up : 0; sfx.ding(); }
           }
         } else {
@@ -3185,7 +3316,7 @@ function buildHelp() {
       ${has('autoclave') ? st('Autoclave', ['syringe'], ['sterile'], 'Automatic, collect it before it melts') : ''}
       ${shelf('ice') ? `<div class="row"><span><b>Freezer</b><br><span class="unl">Ready to use</span></span><span class="ics">${iconHTML('ice')}</span></div>` : ''}
       <div class="row"><span><b>Sink</b><br><span class="unl">Drop in a stack of dirty trays, hold E to wash them one at a time</span></span><span class="ics">🍽️</span></div>
-      ${has('lift') ? '<div class="row"><span><b>Lift</b><br><span class="unl">Ride it between floors, or put a tray on it to send it up. When it breaks down, take the slow stairs.</span></span><span class="ics">🛗</span></div>' : ''}
+      ${has('lift') ? '<div class="row"><span><b>Lift</b><br><span class="unl">Ride one between floors, or put a tray on it to send it up. When one breaks down, use the other.</span></span><span class="ics">🛗</span></div>' : ''}
       ${LV.heli ? '<div class="row"><span><b>Helipad</b><br><span class="unl">Clear the pad when the air ambulance comes in. Its downdraft blows items off nearby counters, and it brings patients in bursts.</span></span><span class="ics">🚁</span></div>' : ''}
       ${has('switch') ? '<div class="row"><span><b>Airlock Button</b><br><span class="unl">Press Space to open both airlocks for a few seconds. They shut by themselves, and knock out anyone in the doorway.</span></span><span class="ics">🔴</span></div>' : ''}
     </div></div>
@@ -3763,7 +3894,7 @@ function buildSnap() {
   }
   beds.forEach((b, i) => { const p = b.patient; if (p) s.bd.push([i, p.uid, RECIPES.indexOf(p.recipe), r1(p.pat), r1(p.max), p.state, r2(p.t), p.look]); });
   s.vs = crowdSnap();
-  const netHaz = hazards.find(h => h.netState); s.hz = netHaz ? netHaz.netState() : 0;
+  s.hz = hazards.map(h => h.netState ? h.netState() : 0);
   s.sh = collapseShadows();
   leavers.forEach(n => s.lv.push([n.uid, r2(n.pos.x), r2(n.pos.z), r2(n.angle), n.look, r2(n.m.g.position.y)]));
   CARTS.forEach((c, i) => { if (c.busy) s.ca.push([i, r2(c.x), r1(c.g.position.z), c.g.rotation.y > 1 ? 1 : 0]); });
@@ -3858,7 +3989,7 @@ function applySnap(s) {
   LIGHT = s.lg[0]; EV.blackout = s.lg[1] ? 1 : 0; EV.sprinkle = s.lg[2] ? 1 : 0;
   if (EV.sprinkle) for (let i = 0; i < 4; i++) emit(rand(0.7, 13.3), 2.9, rand(1.6, 6.8), { color: '#9fdcff', up: -2.5, g: 9, life: 0.45, size: 0.022, sp: 0.05, spread: 0.02, op: 0.8 });
   applyShadows(s.sh || []);
-  if (s.hz) { const h = hazards.find(x => x.applyNet); if (h) h.applyNet(s.hz); }
+  if (Array.isArray(s.hz)) s.hz.forEach((a, i) => { const h = hazards[i]; if (a && h && h.applyNet) h.applyNet(a); });
   (s.ev || []).forEach(playNetEvent);
 }
 function syncCrowd(map, list, make, extra) {
@@ -3972,6 +4103,7 @@ function update(dt) {
     lightingUpdate(dt); ledUpdate(dt);
   } else if (G.state !== 'paused') { hazards.forEach(h => h.update(dt, G.state === 'play')); wetUpdate(dt); eventsUpdate(dt); lightingUpdate(dt); leaversUpdate(dt); ledUpdate(dt); }
   ambienceUpdate(dt);
+  if (world.city) world.city(dt);
   G.shake = Math.max(0, G.shake - dt);
   animate(dt);
   updateGuides();

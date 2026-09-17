@@ -11,6 +11,6 @@ A frantic co-op hospital game built with Three.js. Grab supplies, prep treatment
 
 Seven wards, each with its own hazard: Code Blue trolley convoys, wandering visitors and wet floors,
 a collapsing ceiling, sealed airlocks, a night shift lit by head torches, a rooftop helipad with a
-landing air ambulance and gusting wind, and a two-floor ward joined by one creaky lift.
+landing air ambulance and gusting wind high above the town, and a two-floor ward joined by two creaky lifts.
 
 Everything runs in the browser from a single HTML file: no build step, no install.
