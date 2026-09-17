@@ -456,12 +456,10 @@ try { await Promise.race([Promise.all([document.fonts.load('700 40px "Atkinson H
 
 /* =============================== DATA =============================== */
 const ITEMS = {
-  roll:    { name: 'Bandage Roll', icon: '🩹', raw: true },
-  bandage: { name: 'Bandages', icon: '🩹', final: true },
+  plaster: { name: 'Plaster', icon: '🩹', final: true, direct: true }, // goes straight on the patient, no tray needed
   fabric:  { name: 'Sling Fabric', icon: '🧣', raw: true },
   sling:   { name: 'Arm Sling', icon: '🧣', final: true },
-  bottle:  { name: 'Pill Bottle', icon: '💊', raw: true },
-  pills:   { name: 'Pill Dose', icon: '💊', final: true },
+  pills:   { name: 'Painkillers', icon: '💊', final: true },
   vial:    { name: 'Medicine Vial', icon: '🧪', raw: true },
   dose:    { name: 'Mixed Medicine', icon: '🧪', final: true },
   syringe: { name: 'Unsterile Syringe', icon: '💉', raw: true },
@@ -472,31 +470,30 @@ const ITEMS = {
   ruined:  { name: 'Ruined', icon: '💨' },
 };
 const STATIONS = {
-  prep:       { name: 'Prep Bench',   manual: true,  time: 2.2, map: { roll: 'bandage', fabric: 'sling' } },
-  pillc:      { name: 'Pill Counter', manual: true,  time: 1.8, map: { bottle: 'pills' } },
+  prep:       { name: 'Prep Bench',   manual: true,  time: 2.2, map: { fabric: 'sling' } },
   centrifuge: { name: 'Centrifuge',   manual: false, time: 6,   map: { vial: 'dose' }, warn: 3.5, burn: 7.5 },
   autoclave:  { name: 'Autoclave',    manual: false, time: 5,   map: { syringe: 'sterile' }, warn: 3.5, burn: 7.5 },
   sink:       { name: 'Sink',         manual: true,  time: 2.0, map: { dirty: 'tray' } },
 };
 const RECIPES = [
-  { id: 'knee',      name: 'Scraped Knee', items: ['bandage'],                  pat: 38, unlock: 0 },
+  { id: 'knee',      name: 'Scraped Knee', items: ['plaster'],                  pat: 38, unlock: 0 },
   { id: 'fever',     name: 'Fever',        items: ['pills', 'ice'],             pat: 46, unlock: 0 },
   { id: 'flu',       name: 'Flu',          items: ['dose', 'sterile'],          pat: 58, unlock: 20 },
-  { id: 'burn',      name: 'Burn',         items: ['ice', 'bandage'],           pat: 46, unlock: 45 },
+  { id: 'burn',      name: 'Burn',         items: ['ice', 'plaster'],           pat: 46, unlock: 45 },
   { id: 'fracture',  name: 'Broken Arm',   items: ['sling', 'pills'],           pat: 54, unlock: 70 },
-  { id: 'infection', name: 'Infection',    items: ['sterile', 'dose', 'bandage'], pat: 70, unlock: 100 },
+  { id: 'infection', name: 'Infection',    items: ['sterile', 'dose', 'plaster'], pat: 70, unlock: 100 },
 ];
 /* Map legend — # wall · | curtain · . floor · , cracked floor · h waiting chairs · S/T airlock walls (take turns)
-   C counter · B bed · R tray return · W sink · X bin · P prep bench · M pill counter · F centrifuge · A autoclave
-   r f b v s i supply shelves (roll, fabric, bottle, vial, syringe, ice). Row 1 is the back row; beds live there. */
+   C counter · B bed · R tray return · W sink · X bin · P prep bench · F centrifuge · A autoclave
+   r f b v s i supply shelves (plaster, fabric, painkillers, vial, syringe, ice). Row 1 is the back row; beds live there. */
 const LEVELS = [
   { id: 'ward', name: 'Ward 4B', sign: 'WARD 4B', hazard: 'Code Blue convoys', recipes: ['knee', 'fever'],
-    blurb: 'Just bandages and fevers, but trolley convoys race along both striped corridors. Get hit and you are out cold.',
+    blurb: 'Just plasters and fevers, but trolley convoys race along both striped corridors. Get hit and you are out cold.',
     map: ['###############',
           '#|B|B|B|B|CRCW#',
           '#.............#',
           '#.............#',
-          '#..CPPC.CMMCC.#',
+          '#..CCCC.CCCCC.#',
           '#.............#',
           '#.............#',
           '#CCrCbCiCCCCCX#',
@@ -510,8 +507,8 @@ const LEVELS = [
     map: ['###############',
           '#|B|B|B|CCRCWC#',
           'D.............D',
-          '#P..hhh.hhh..M#',
-          '#P...........M#',
+          '#P..hhh.hhh..C#',
+          '#P...........C#',
           '#C..hhh.hhh..C#',
           '#C...........C#',
           '#CrfCCCCCCbiCX#',
@@ -528,7 +525,7 @@ const LEVELS = [
           '#.............#',
           '#.CPC.....CFC.#',
           'D.............D',
-          '#.CMC.....CAC.#',
+          '#.CCC.....CAC.#',
           '#.............#',
           '#fbCvsiCCCCCCX#',
           '###############'],
@@ -541,9 +538,9 @@ const LEVELS = [
     map: ['###############',
           '#|B|B|WRC|B|B|#',
           'D......#......D',
-          '#.CPCK.S.CFFC.#',
+          '#.CCCK.S.CFFC.#',
           '#......#......#',
-          '#.CMCC.S.KAAC.#',
+          '#.CCCC.S.KAAC.#',
           '#......#......#',
           '#rCbCCCCCCvsiX#',
           '###############'],
@@ -557,7 +554,7 @@ const LEVELS = [
           '#|B|B|CWR|B|B|#',
           'D.............D',
           '#.CPC.#.#.CFC.#',
-          '#.CMC.#.#.CAC.#',
+          '#.CCC.#.#.CAC.#',
           '#.............#',
           '#.............#',
           '#CCCrfbXvsiCCC#',
@@ -571,8 +568,8 @@ const LEVELS = [
     map: ['###############',
           '#|B|B|WRC|B|B|#',
           'D.............D',
-          '#.CPC.HHH.CFC.#',
-          '#.CMC.HHH.CAC.#',
+          '#.CCC.HHH.CFC.#',
+          '#.CCC.HHH.CAC.#',
           '#.....HHH.....#',
           '#.............#',
           '#CrCbCXCvsiCCC#',
@@ -586,7 +583,7 @@ const LEVELS = [
     map: ['###############',
           '#|B|B|B#CRCWCC#',
           'D......L......#',
-          '#.CC...#.CPCM.#',
+          '#.CC...#.CCCC.#',
           '#......#......#',
           '#.CX...#.CFCA.#',
           '#......L......#',
@@ -606,11 +603,11 @@ const TUTORIAL_LEVEL = { ...LEVELS[0], id: 'orientation', recipes: null,
         '#..CPPC.CFFAA.#',
         '#.............#',
         '#.............#',
-        '#rfbvsiCMMCCCX#',
+        '#rfbvsiCCCCCCX#',
         '###############'],
   trays: [[10, 7], [11, 7], [12, 7], [6, 4]] };
-const CHAR_KIND = { '#': 'wall', D: 'wall', K: 'switch', H: 'floor', L: 'lift', Z: 'stairs', '|': 'curtain', '.': 'floor', ',': 'floor', S: 'floor', T: 'floor', h: 'chairs', C: 'counter', B: 'bed', R: 'return', W: 'sink', X: 'bin', P: 'prep', M: 'pillc', F: 'centrifuge', A: 'autoclave', r: 'disp', f: 'disp', b: 'disp', v: 'disp', s: 'disp', i: 'disp' };
-const DISP_ITEM = { r: 'roll', f: 'fabric', b: 'bottle', v: 'vial', s: 'syringe', i: 'ice' };
+const CHAR_KIND = { '#': 'wall', D: 'wall', K: 'switch', H: 'floor', L: 'lift', Z: 'stairs', '|': 'curtain', '.': 'floor', ',': 'floor', S: 'floor', T: 'floor', h: 'chairs', C: 'counter', B: 'bed', R: 'return', W: 'sink', X: 'bin', P: 'prep', F: 'centrifuge', A: 'autoclave', r: 'disp', f: 'disp', b: 'disp', v: 'disp', s: 'disp', i: 'disp' };
+const DISP_ITEM = { r: 'plaster', f: 'fabric', b: 'pills', v: 'vial', s: 'syringe', i: 'ice' };
 const DISP_COLOR = { r: '#f2c9a0', f: '#9db4cc', b: '#f0a45a', v: '#7fb0ff', s: '#e8e2c6', i: '#a9e4ff' };
 const SHIFT = 180;
 
@@ -1066,7 +1063,7 @@ function shelfTex(emoji, name, accent) {
   x.strokeStyle = '#1B2B2E'; x.lineWidth = 8; x.beginPath(); x.roundRect(4, 4, s - 8, s - 8, 30); x.stroke();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
-const SHELF_NAMES = { roll: 'BANDAGE ROLL', fabric: 'SLING FABRIC', bottle: 'PILL BOTTLE', vial: 'MEDICINE VIAL', syringe: 'SYRINGE', ice: 'ICE PACKS' };
+const SHELF_NAMES = { plaster: 'PLASTERS', fabric: 'SLING FABRIC', pills: 'PAINKILLERS', vial: 'MEDICINE VIAL', syringe: 'SYRINGE', ice: 'ICE PACKS' };
 function textTex(lines, { w = 512, h = 128, bg = '#ffffff', fg = '#1B2B2E', size = 54, font = '"Atkinson Hyperlegible", sans-serif', weight = 700, radius = 20, border = null, spacing = 4 } = {}) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
   x.fillStyle = bg; x.beginPath(); x.roundRect(0, 0, w, h, radius); x.fill();
@@ -1499,12 +1496,6 @@ function buildTile(t) {
         add(sc, box(0.22, 0.012, 0.03), M.steel, 0.06, 0, 0).rotation.y = 0.18; add(sc, box(0.22, 0.012, 0.03), M.steel, 0.06, 0.005, 0).rotation.y = -0.18;
         add(sc, tor(0.035, 0.012, 6, 14), std('#ff6b6b'), -0.08, 0.005, 0.03).rotation.x = PI / 2; add(sc, tor(0.035, 0.012, 6, 14), std('#ff6b6b'), -0.08, 0.005, -0.03).rotation.x = PI / 2; }
       t.top = H + 0.03; t.name = 'Prep Bench'; t.hl = H + 0.035; break;
-    case 'pillc':
-      counterBody(g, depth, dz, M.counterBody, std('#e9a23b'));
-      add(g, rbox(0.26, 0.3, 0.22, .04), M.white, -0.3, H + 0.15, -0.3);
-      add(g, cyl(0.1, 0.04, 0.12, 14), std('#e9a23b'), -0.3, H + 0.36, -0.3);
-      add(g, rbox(0.14, 0.02, 0.02, .005), std('#2a9d93', { emissive: '#2a9d93', emissiveIntensity: .6 }), -0.3, H + 0.2, -0.185, false);
-      t.name = 'Pill Counter'; break;
     case 'centrifuge': {
       counterBody(g, depth, dz, M.counterBody, M.counterTopDark);
       add(g, cyl(0.38, 0.42, 0.12, 28), M.steel, 0, H + 0.06, 0);
@@ -1652,7 +1643,7 @@ function loadLevel(i) {
       const ch = LV.map[y][x], kind = CHAR_KIND[ch];
       const t = { x, y, ch, kind, item: null, solid: !['floor', 'lift', 'stairs'].includes(kind), blocked: false, wet: 0,
                   interactive: !['floor', 'wall', 'curtain', 'chairs', 'stairs'].includes(kind),
-                  surface: ['counter', 'prep', 'pillc', 'centrifuge', 'autoclave', 'sink', 'lift'].includes(kind), bounce: 0,
+                  surface: ['counter', 'prep', 'centrifuge', 'autoclave', 'sink', 'lift'].includes(kind), bounce: 0,
                   h: LV.upper && x <= 6 && y >= 1 && y <= 7 ? LV.upper : 0 }; // the left side is the upper floor
       tiles[y].push(t);
       if (kind !== 'floor' || ch !== '.') buildTile(t);
@@ -1674,12 +1665,7 @@ function loadLevel(i) {
 function itemMesh(type) {
   const g = new THREE.Group();
   switch (type) {
-    case 'roll': {
-      add(g, cyl(0.13, 0.13, 0.24, 22), M.cloth, 0, 0.13, 0).rotation.z = PI / 2;
-      add(g, cyl(0.05, 0.05, 0.25, 12), M.core, 0, 0.13, 0).rotation.z = PI / 2;
-      add(g, box(0.24, 0.005, 0.12), M.cloth, 0, 0.003, 0.14); break;
-    }
-    case 'bandage':
+    case 'plaster':
       for (const i of [0, 1]) { const b = new THREE.Group(); add(b, rbox(0.34, 0.03, 0.11, .012), M.tan); add(b, rbox(0.12, 0.034, 0.08, .01), M.pad, 0, 0.004, 0); b.position.y = 0.02 + i * 0.032; b.rotation.y = i ? -0.55 : 0.55; g.add(b); }
       break;
     case 'fabric':
@@ -1689,10 +1675,6 @@ function itemMesh(type) {
       const tri = add(g, cyl(0.24, 0.24, 0.05, 3), M.sling, 0, 0.03, 0); tri.rotation.y = PI / 2;
       add(g, tor(0.14, 0.022, 6, 18, PI), M.slingStrap, 0, 0.06, -0.02).rotation.x = -PI / 2; break;
     }
-    case 'bottle':
-      add(g, cyl(0.1, 0.1, 0.22, 18), M.amber, 0, 0.11, 0);
-      add(g, cyl(0.104, 0.104, 0.1, 18), M.label, 0, 0.1, 0);
-      add(g, cyl(0.108, 0.108, 0.06, 18), M.capWhite, 0, 0.25, 0); break;
     case 'pills':
       add(g, cyl(0.12, 0.09, 0.1, 18), M.cup, 0, 0.05, 0);
       for (let i = 0; i < 3; i++) { const p = add(g, capg(0.026, 0.05), i % 2 ? M.pillRed : M.pillYel, Math.cos(i * 2.1) * 0.05, 0.12, Math.sin(i * 2.1) * 0.05); p.rotation.set(PI / 2, 0, i); }
@@ -3081,7 +3063,7 @@ function doWork(p, dt) {
   if (p.workFx <= 0) {
     p.workFx = t.kind === 'sink' ? 0.22 : 0.18;
     if (t.kind === 'sink') { sfx.scrub(); emit(t.x, t.top + 0.1, t.y, { n: 3, color: ['#ffffff', '#cdeeff'], up: 0.6, life: 0.7, size: 0.05, grow: 1.6, spread: 0.2 }); }
-    else { sfx.snip(); emit(t.x, t.top + 0.1, t.y, { n: 2, color: t.kind === 'pillc' ? ['#ffd23f', '#e84a5f'] : ['#ffffff', '#e2b48a'], up: 1.2, g: 5, life: 0.5, size: 0.03, sp: 0.8 }); }
+    else { sfx.snip(); emit(t.x, t.top + 0.1, t.y, { n: 2, color: ['#ffffff', '#e2b48a'], up: 1.2, g: 5, life: 0.5, size: 0.03, sp: 0.8 }); }
   }
   if (it.progress >= 1 && t.kind === 'sink') {
     // wash one tray from the stack; it goes onto the drying rack
@@ -3099,14 +3081,26 @@ function doWork(p, dt) {
 function deliver(p, t) {
   const bed = t.bed, h = p.held, pt = bed.patient;
   if (!pt || pt.state !== 'wait') { floatText(t.x, 1.3, t.y, 'No patient in this bed', 'bad'); sfx.wrong(); return; }
-  if (h.type !== 'tray') { floatText(t.x, 1.3, t.y, 'Deliver treatments on a tray', 'bad'); sfx.wrong(); return; }
+  const need = pt.recipe.items, applied = pt.applied || (pt.applied = []), left = need.filter(n => !applied.includes(n));
+  if (ITEMS[h.type]?.direct) {
+    // plasters go straight on the patient; anything else they need still comes on a tray
+    if (!left.includes(h.type)) { floatText(t.x, 1.3, t.y, applied.includes(h.type) ? `They already have a ${ITEMS[h.type].name.toLowerCase()}` : `They don't need a ${ITEMS[h.type].name.toLowerCase()}`, 'bad'); sfx.wrong(); return; }
+    applied.push(h.type); discard(h); p.held = null; tutEvent('apply:' + h.type);
+    if (left.length > 1) { sfx.place(); floatText(t.x, 1.9, t.y - 0.3, `${ITEMS[h.type].name} on`, 'good'); emit(t.x, 1.2, t.y - 0.6, { n: 8, color: ['#5CF29B', '#ffffff'], up: 1.6, g: 4, life: 0.6, size: 0.04, sp: 0.9 }); return; }
+    return treated(t, pt, false);
+  }
+  if (h.type !== 'tray') { floatText(t.x, 1.3, t.y, 'Only plasters go straight on. Bring the rest on a tray', 'bad'); sfx.wrong(); return; }
   if (!h.contents.length) { floatText(t.x, 1.3, t.y, 'The tray is empty', 'bad'); sfx.wrong(); return; }
-  const need = pt.recipe.items;
-  if (need.length !== h.contents.length || !need.every(n => h.contents.includes(n))) { floatText(t.x, 1.3, t.y, 'Wrong treatment for this patient', 'bad'); sfx.wrong(); return; }
-  const frac = pt.pat / pt.max, base = 15 + 10 * need.length, tip = Math.round(frac * 12);
+  if (h.contents.some(n => applied.includes(n))) { floatText(t.x, 1.3, t.y, 'They already have that', 'bad'); sfx.wrong(); return; }
+  if (left.length !== h.contents.length || !left.every(n => h.contents.includes(n))) { floatText(t.x, 1.3, t.y, 'Wrong treatment for this patient', 'bad'); sfx.wrong(); return; }
+  discard(h); p.held = null;
+  treated(t, pt, true);
+}
+function treated(t, pt, usedTray) {
+  const need = pt.recipe.items, frac = pt.pat / pt.max, base = 15 + 10 * need.length, tip = Math.round(frac * 12);
   G.score += base + tip; G.treated++;
   floatText(t.x, 1.9, t.y - 0.3, `+${base}${tip ? ` <small>+${tip} tip</small>` : ''}`, 'good');
-  discard(h); p.held = null; G.returnQ.push(G.tutorial ? 2.5 : 7);
+  if (usedTray) G.returnQ.push(G.tutorial ? 2.5 : 7);
   pt.state = 'happy'; pt.t = 0; sfx.deliver(); tutEvent('deliver:' + pt.recipe.id);
   emit(t.x, 1.4, t.y - 0.6, { n: 26, color: CONFETTI, up: 3, g: 7, life: 1.2, size: 0.045, sp: 1.6, spread: 0.3 });
   updateHUD();
@@ -3305,23 +3299,23 @@ function buildHelp() {
   const has = (k) => tiles.flat().some(t => t.kind === k);
   const shelf = (type) => tiles.flat().some(t => t.kind === 'disp' && DISP_ITEM[t.ch] === type);
   const st = (name, from, to, how) => `<div class="row"><span><b>${name}</b><br><span class="unl">${how}</span></span><span class="ics">${from.map(iconHTML).join(' ')} <span style="font-size:12px;opacity:.6">→</span> ${to.map(iconHTML).join(' ')}</span></div>`;
-  const prepIn = ['roll', 'fabric'].filter(shelf), prepOut = prepIn.map(x => STATIONS.prep.map[x]);
+  const prepIn = ['fabric'].filter(shelf), prepOut = prepIn.map(x => STATIONS.prep.map[x]);
+  const ready = ['plaster', 'pills', 'ice'].filter(shelf);
   const machines = has('centrifuge') || has('autoclave');
   $('#help').innerHTML = `
     <div class="help-head"><h3>Treatment chart · ${LV.name}</h3><button id="helpClose" class="mini" type="button">Close <kbd>H</kbd></button></div>
     <div><h3>Stations</h3><div class="rx">
       ${has('prep') && prepIn.length ? st('Prep Bench', prepIn, prepOut, 'Hold E') : ''}
-      ${has('pillc') ? st('Pill Counter', ['bottle'], ['pills'], 'Hold E') : ''}
       ${has('centrifuge') ? st('Centrifuge', ['vial'], ['dose'], 'Automatic, collect it before it spoils') : ''}
       ${has('autoclave') ? st('Autoclave', ['syringe'], ['sterile'], 'Automatic, collect it before it melts') : ''}
-      ${shelf('ice') ? `<div class="row"><span><b>Freezer</b><br><span class="unl">Ready to use</span></span><span class="ics">${iconHTML('ice')}</span></div>` : ''}
+      ${ready.length ? `<div class="row"><span><b>Shelves</b><br><span class="unl">Ready to use${shelf('plaster') ? '. Plasters go straight on the patient' : ''}</span></span><span class="ics">${ready.map(iconHTML).join(' ')}</span></div>` : ''}
       <div class="row"><span><b>Sink</b><br><span class="unl">Drop in a stack of dirty trays, hold E to wash them one at a time</span></span><span class="ics">🍽️</span></div>
       ${has('lift') ? '<div class="row"><span><b>Lift</b><br><span class="unl">Ride one between floors, or put a tray on it to send it up. When one breaks down, use the other.</span></span><span class="ics">🛗</span></div>' : ''}
       ${LV.heli ? '<div class="row"><span><b>Helipad</b><br><span class="unl">Clear the pad when the air ambulance comes in. Its downdraft blows items off nearby counters, and it brings patients in bursts.</span></span><span class="ics">🚁</span></div>' : ''}
       ${has('switch') ? '<div class="row"><span><b>Airlock Button</b><br><span class="unl">Press Space to open both airlocks for a few seconds. They shut by themselves, and knock out anyone in the doorway.</span></span><span class="ics">🔴</span></div>' : ''}
     </div></div>
     <div><h3>Patients</h3><div class="rx">${levelRecipes().map(x => recipeRow(x.r, LV.recipes ? x.unlock : 0)).join('')}</div></div>
-    <p class="note">Put finished items on a tray, then carry the tray to the bed whose tag matches. Faster care earns a bigger tip. Wrong trays are refused, and anything spoiled goes in the red bin. Picked up the wrong supply? Press Space at its shelf to put it back.</p>
+    <p class="note">Put finished items on a tray, then carry the tray to the bed whose tag matches. Plasters can skip the tray: press Space at the bed to put one straight on. Faster care earns a bigger tip. Wrong trays are refused, and anything spoiled goes in the red bin. Picked up the wrong supply? Press Space at its shelf to put it back.</p>
     <p class="note"><b>Chain reactions:</b> ${machines ? 'a spoiled item sets off the smoke alarm and the sprinklers soak the floor. Running three machines at once trips the breaker and the lights go out. ' : ''}Dashing on a wet floor sends you spinning.</p>`;
 }
 function setHints() {
@@ -3371,7 +3365,7 @@ function goMenu() {
 function drawMinimap(cv, lv) {
   const x = cv.getContext('2d'), s = cv.width / 15;
   const col = { '#': '#1B2B2E', D: '#f2b134', K: '#e23b3b', H: '#e9dcae', L: '#f2b134', Z: '#8a97a8', '|': '#9ccbb9', '.': lv.theme.floorA, ',': lv.theme.floorB, S: '#f2b134', T: '#f2b134', h: '#4f7fb3',
-    C: '#2a9d93', B: '#f3a5b5', R: '#34454b', W: '#7fc8ff', X: '#d8343f', P: '#5bbf8a', M: '#e9a23b', F: '#4aa3ff', A: '#ff7a2f', ...DISP_COLOR };
+    C: '#2a9d93', B: '#f3a5b5', R: '#34454b', W: '#7fc8ff', X: '#d8343f', P: '#5bbf8a', F: '#4aa3ff', A: '#ff7a2f', ...DISP_COLOR };
   x.fillStyle = '#1B2B2E'; x.fillRect(0, 0, cv.width, cv.height);
   lv.map.forEach((row, y) => [...row].forEach((ch, i) => {
     x.fillStyle = col[ch] || '#fff'; x.fillRect(i * s + 1, y * s + 1, s - 2, s - 2);
@@ -3508,29 +3502,21 @@ const supplyTargets = (raw, station) => held(raw) || itemOn(raw, station).length
 const LESSONS = [
   { title: 'Welcome to Ward 4B', steps: [
     { text: () => `You're <b>${DOCS[G.chosen].name}</b> tonight. Walk around the ward with ${K('W', 'A', 'S', 'D')} or the arrow keys.`, done: f => f.has('moved') },
-    { text: `Grabbed the wrong thing? Press ${K('Space')} at a supply's own shelf to put it back. Try it now: take a ${ic('bottle')} pill bottle, then return it.`,
-      targets: () => shelf('bottle'), done: f => f.has('return:bottle') },
+    { text: `Grabbed the wrong thing? Press ${K('Space')} at a supply's own shelf to put it back. Try it now: take some ${ic('pills')} painkillers, then return them.`,
+      targets: () => shelf('pills'), done: f => f.has('return:pills') },
   ] },
   { title: 'Scraped Knee', recipe: 'knee', steps: [
-    { text: `A patient in Bed 4 needs ${ic('bandage')} bandages. Walk up to the bandage roll shelf and press ${K('Space')} to take a roll.`,
-      targets: () => shelf('roll'), done: f => f.has('pick:roll') },
-    { text: `The grey icon means it's a raw supply. Face a <b>Prep Bench</b> and press ${K('Space')} to put the roll down.`,
-      targets: () => kindTiles('prep'), done: f => f.has('place:prep:roll') },
-    { text: `Hold ${K('E')} to cut the roll into bandages. Keep holding until the green bar fills.`,
-      targets: () => itemOn('roll', 'prep'), done: f => f.has('made:bandage') },
-    { text: `The icon turns colour when an item is ready. Pick up the bandages and press ${K('Space')} on a clean tray to add them.`,
-      targets: () => held('bandage') ? trayTiles() : itemOn('bandage'), done: f => f.has('tray:bandage') },
-    { text: `Pick up the tray, carry it to <b>Bed 4</b>, face the bed and press ${K('Space')}. Treatments only count on a tray.`,
-      targets: () => deliverTargets(['bandage']), done: f => f.has('deliver:knee') },
+    { text: `A patient in Bed 4 needs a ${ic('plaster')} plaster. Walk up to the plasters shelf and press ${K('Space')} to take one.`,
+      targets: () => shelf('plaster'), done: f => f.has('pick:plaster') },
+    { text: `Plasters don't need a tray. Carry it to <b>Bed 4</b>, face the bed and press ${K('Space')} to put it straight on.`,
+      targets: () => bedTile(), done: f => f.has('deliver:knee') },
   ] },
   { title: 'Fever', recipe: 'fever', steps: [
-    { text: `Fever needs a ${ic('pills')} pill dose and an ${ic('ice')} ice pack. Take a pill bottle to a <b>Pill Counter</b> and put it down.`,
-      targets: () => supplyTargets('bottle', 'pillc'), done: f => f.has('place:pillc:bottle') },
-    { text: `Hold ${K('E')} to count out the dose.`, targets: () => itemOn('bottle', 'pillc'), done: f => f.has('made:pills') },
-    { text: `Put the pills on a clean tray.`, targets: () => held('pills') ? trayTiles() : itemOn('pills'), done: f => f.has('tray:pills') },
-    { text: `Ice packs are ready as they are. Pick up the tray, face the <b>Freezer</b> and press ${K('Space')} to drop one straight on.`,
+    { text: `Fever needs ${ic('pills')} painkillers and an ${ic('ice')} ice pack, and both are ready to use. Take some painkillers and press ${K('Space')} on a clean tray to add them.`,
+      targets: () => held('pills') ? trayTiles() : shelf('pills'), done: f => f.has('tray:pills') },
+    { text: `Pick up the tray, face the <b>Freezer</b> and press ${K('Space')} to drop an ice pack straight on.`,
       targets: () => shelf('ice'), done: f => f.has('tray:ice') },
-    { text: `Deliver the tray to Bed 4.`, targets: () => deliverTargets(['pills', 'ice']), done: f => f.has('deliver:fever') },
+    { text: `Everything except a plaster goes to the patient on a tray. Deliver it to Bed 4.`, targets: () => deliverTargets(['pills', 'ice']), done: f => f.has('deliver:fever') },
   ] },
   { title: 'Clean-up', steps: [
     { text: `Used trays come back dirty at the <b>Tray Return</b>, and you only have four. Press ${K('Space')} there to pick up the whole stack.`,
@@ -3549,10 +3535,12 @@ const LESSONS = [
     { text: `Deliver the flu treatment to Bed 4.`, targets: () => deliverTargets(['dose', 'sterile']), done: f => f.has('deliver:flu') },
   ] },
   { title: 'Broken Arm', recipe: 'fracture', steps: [
-    { text: `Broken arm: an ${ic('sling')} arm sling plus a ${ic('pills')} pill dose. Slings are cut from sling fabric at the Prep Bench, the same way as bandages.`,
-      targets: () => supplyTargets('fabric', 'prep'), done: f => f.has('made:sling') },
-    { text: `Now make the pills, put both on a tray and deliver it. You've done every part of this before.`,
-      targets: () => heldTrayWith(['sling', 'pills']) ? bedTile() : [], done: f => f.has('deliver:fracture') },
+    { text: `Broken arm: an ${ic('sling')} arm sling plus ${ic('pills')} painkillers. Slings need making. Take ${ic('fabric')} sling fabric (grey means raw) and put it on a <b>Prep Bench</b>.`,
+      targets: () => supplyTargets('fabric', 'prep'), done: f => f.has('place:prep:fabric') },
+    { text: `Hold ${K('E')} to cut the fabric into a sling. Keep holding until the green bar fills.`,
+      targets: () => itemOn('fabric', 'prep'), done: f => f.has('made:sling') },
+    { text: `Put the sling and some painkillers on a tray and deliver it. You've done every part of this before.`,
+      targets: () => heldTrayWith(['sling', 'pills']) ? bedTile() : itemOn('sling', 'prep').length ? itemOn('sling', 'prep') : [], done: f => f.has('deliver:fracture') },
   ] },
   { title: 'Tricks of the Trade', steps: [
     { text: `Tap ${K('Shift')} while you walk to dash. Hold it to sprint, which also lets you barge past visitors who get in your way.`, done: f => f.has('dash') },
@@ -3892,7 +3880,7 @@ function buildSnap() {
     if (t.blocked) s.bl.push(i);
     if (t.wet > 0) s.wt.push(i);
   }
-  beds.forEach((b, i) => { const p = b.patient; if (p) s.bd.push([i, p.uid, RECIPES.indexOf(p.recipe), r1(p.pat), r1(p.max), p.state, r2(p.t), p.look]); });
+  beds.forEach((b, i) => { const p = b.patient; if (p) s.bd.push([i, p.uid, RECIPES.indexOf(p.recipe), r1(p.pat), r1(p.max), p.state, r2(p.t), p.look, p.applied || []]); });
   s.vs = crowdSnap();
   s.hz = hazards.map(h => h.netState ? h.netState() : 0);
   s.sh = collapseShadows();
@@ -3961,7 +3949,7 @@ function applySnap(s) {
       g.position.set(0, 0.52, -0.72); b.g.add(g); b.legs.visible = true;
       b.patient = { recipe, g, uid: d[1], look: d[7], pat: d[3], max: d[4], state: d[5], t: d[6] };
     }
-    Object.assign(b.patient, { pat: d[3], max: d[4], state: d[5], t: d[6] });
+    Object.assign(b.patient, { pat: d[3], max: d[4], state: d[5], t: d[6], applied: d[8] || [] });
     animatePatient(b.patient, 1 / 60);
   });
   beds.forEach(b => { if (b.patient && !live.has(b.patient.uid)) { b.g.remove(b.patient.g); b.patient = null; b.legs.visible = false; } });
@@ -4185,7 +4173,7 @@ function drawOverlays() {
       const frac = clamp(p.pat / p.max, 0, 1);
       const tri = frac > 0.55 ? 'var(--green)' : frac > 0.25 ? 'var(--amber)' : 'var(--red)';
       const cls = p.state === 'happy' ? 'happy' : p.state === 'sad' ? 'sad' : frac < 0.25 ? 'urgent' : '';
-      const body = p.state === 'happy' ? `<div class="needs">💚</div>` : p.state === 'sad' ? `<div class="needs">💔</div>` : `<div class="needs">${p.recipe.items.map(iconHTML).join('')}</div>`;
+      const body = p.state === 'happy' ? `<div class="needs">💚</div>` : p.state === 'sad' ? `<div class="needs">💔</div>` : `<div class="needs">${p.recipe.items.map(n => (p.applied || []).includes(n) ? `<span class="ic done" title="${ITEMS[n].name} on">✅</span>` : iconHTML(n)).join('')}</div>`;
       ov('bed' + i, b.x, 1.8 + (b.tile.h || 0), 0.45,`<div class="tag ${cls}"><div class="strip" style="background:${tri}"></div><div class="dx">${RECIPE_ICON[p.recipe.id]} ${p.recipe.name}</div>${body}<div class="bar"><i style="width:${Math.round(frac * 100)}%;background:${tri}"></i></div></div>`);
     });
     // items on tiles, progress, warnings
